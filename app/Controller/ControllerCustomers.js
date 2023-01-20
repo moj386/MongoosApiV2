@@ -39,7 +39,6 @@ exports.login_register = async function (req, res) {
 
 exports.register = async function (req, res) {
    
-    
     try {
         const { _id } = req.user;
         const { customer_name } = req.body;
