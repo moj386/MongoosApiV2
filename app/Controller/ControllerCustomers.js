@@ -3,17 +3,14 @@ CustomerMaster = require('../Model/ModelCustomers');
 Products = require('../Model/ModelProducts');
 const jwtToken = require('../../utils/tokenHandler');
 
-
-
-
 const apiKey = '13858cd2ca9a13126b43356621191d9e';
 const apiSecret = 'c576cb5416a5d7062c25ecf84aac1310';
 var smsglobal = require('smsglobal')(apiKey, apiSecret);
 
 
 const Customer = CustomerMaster.Customer;
-const Address = CustomerMaster.CustomerAddress;
-const Orders = CustomerMaster.Orders;
+const Address  = CustomerMaster.CustomerAddress;
+const Orders   = CustomerMaster.Orders;
 
 
 
@@ -35,7 +32,6 @@ exports.login_register = async function (req, res) {
     res.json({ status: 1, message: 'Success' });
 
 }
-
 
 exports.register = async function (req, res) {
    
@@ -70,7 +66,6 @@ exports.otp_request = async function (req, res) {
     }
 }
 
-
 exports.login = async function (req, res) {
     try {
         
@@ -96,8 +91,6 @@ exports.login = async function (req, res) {
     }
 }
 
-
-
 exports.loginstatus = async function (req, res) {
 
     const { user_id } = req.user
@@ -106,15 +99,35 @@ exports.loginstatus = async function (req, res) {
     res.status(200).send("Welcome 🙌 ");
 }
 
+exports.verifyLocation = async function (req, res){
+
+    // const { curr_long, curr_latt } = req.body;
+
+    // var METERS_PER_MILE = 1000
+    // try {
+    //     const data = await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [ long,latt ] }, $maxDistance: 8 * METERS_PER_MILE } } })
+    //     res.json({ status: 1, message: 'Success', data: data });
+    // } catch (e) {
+    //     res.json({ status: 0, message: e.message});
+    // }
+
+}
+
+
+
+
+
 //// CUSTOMER ADDRESS
 
 exports.newAddress = async function (req, res) {
     try {
-        const { user_id } = req.user;
+        const { customer_id } = req.user;
         var __defaultAddress = false;
         const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress, } = req.body
 
-        const __customer = await Customer.findById(user_id);
+        console.log(customer_id);
+
+        const __customer = await Customer.findById(customer_id);
         const { addresses } = __customer;
         if (addresses.lnegth === 0)
             __defaultAddress = true;

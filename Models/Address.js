@@ -6,16 +6,14 @@ const AddressSchema = new mongoose.Schema({
     line1: { type: String, required: true },
     line2: String,
     latlang: String,
+    pin_location:  { type: { type: String }, coordinates: [] },
     area: String,
     state: String,
-    country: String,
+    country: { type: String, default: "AE" },
     mobile: { type: String, required: true },
     defaultAddress: { type: Boolean, required: true },
     status: { type: Boolean, default: true },
-    created: {
-      type: Date,
-      default: Date.now
-    }
+    created: { type: Date, default: Date.now }
   
   })
 
