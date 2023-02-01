@@ -121,20 +121,22 @@ exports.verifyLocation = async function (req, res){
 
 exports.newAddress = async function (req, res) {
     try {
-        const { customer_id } = req.user;
+        const { _id } = req.user;
         var __defaultAddress = false;
-        const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress, } = req.body
+        const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress,pin_location } = req.body
 
-        console.log(customer_id);
+        
 
-        const __customer = await Customer.findById(customer_id);
-        const { addresses } = __customer;
-        if (addresses.lnegth === 0)
+        const __customer = await Customer.findById(_id);
+
+        console.log(__customer);
+
+        let { customer_addresses } = __customer ? __customer: {};
+        if (customer_addresses && customer_addresses.lnegth === 0)
             __defaultAddress = true;
+            customer_addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress,pin_location })
 
-        addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress, })
-
-        Customer.update({ _id: __customer._id }, { "$set": { addresses } }, function (err) {
+        Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
