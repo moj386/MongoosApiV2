@@ -9,8 +9,8 @@ var smsglobal = require('smsglobal')(apiKey, apiSecret);
 
 
 const Customer = CustomerMaster.Customer;
-const Address  = CustomerMaster.CustomerAddress;
-const Orders   = CustomerMaster.Orders;
+const Address = CustomerMaster.CustomerAddress;
+const Orders = CustomerMaster.Orders;
 
 
 
@@ -34,14 +34,14 @@ exports.login_register = async function (req, res) {
 }
 
 exports.register = async function (req, res) {
-   
+
     try {
         const { _id } = req.user;
         const { customer_name } = req.body;
         const filter = { _id };
-        const update = { customer_name  };
-    
-        const result = await Customer.findOneAndUpdate( filter, update );
+        const update = { customer_name };
+
+        const result = await Customer.findOneAndUpdate(filter, update);
         result.customer_name = customer_name
         const token = jwtToken.createCustomerToken(result)
         return res.json({ status: 1, message: 'Success', data: { token } });
@@ -54,33 +54,33 @@ exports.register = async function (req, res) {
 
 exports.otp_request = async function (req, res) {
     const { customer_mobile } = req.body;
-    const customer_otp = Math.floor(Math.random()*90000) + 10000;
+    const customer_otp = Math.floor(Math.random() * 90000) + 10000;
     var now = new Date();
-    now.setMinutes(now.getMinutes() + 5); 
+    now.setMinutes(now.getMinutes() + 5);
     now = new Date(now);
-    try{
-        await Customer.updateOne({ customer_mobile }, {$set : { customer_otp, customer_otp_expiry:  now }}, {upsert : true });
-        res.json({ status: 1, message: 'Success', data: {otp: customer_otp} });
-    }catch(e){
+    try {
+        await Customer.updateOne({ customer_mobile }, { $set: { customer_otp, customer_otp_expiry: now } }, { upsert: true });
+        res.json({ status: 1, message: 'Success', data: { otp: customer_otp } });
+    } catch (e) {
         res.json({ status: 0, message: e.message });
     }
 }
 
 exports.login = async function (req, res) {
     try {
-        
-        const { customer_mobile, otp  } = req.body;
+
+        const { customer_mobile, otp } = req.body;
         const result = await Customer.findOne({ customer_mobile }).select("+customer_otp").select("+customer_otp_expiry")
-        if( !result ){
+        if (!result) {
             return res.json({ status: 0, message: "User not fond!" });
         }
-        
+
         const { customer_otp_expiry, customer_otp } = result
         const now = new Date();
-        if ( String(customer_otp) !== String(otp) ){
+        if (String(customer_otp) !== String(otp)) {
             return res.json({ status: 0, message: "Wrong OTP" });
         }
-        if ( customer_otp_expiry < now ){
+        if (customer_otp_expiry < now) {
             return res.json({ status: 0, message: "OTP has expired, please try again" });
         }
         const token = jwtToken.createCustomerToken(result)
@@ -99,7 +99,7 @@ exports.loginstatus = async function (req, res) {
     res.status(200).send("Welcome 🙌 ");
 }
 
-exports.verifyLocation = async function (req, res){
+exports.verifyLocation = async function (req, res) {
 
     // const { curr_long, curr_latt } = req.body;
 
@@ -123,25 +123,15 @@ exports.newAddress = async function (req, res) {
     try {
         const { _id } = req.user;
         var __defaultAddress = false;
-        const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress,pin_location } = req.body
-
-        
-
+        const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress, pin_location } = req.body
         const __customer = await Customer.findById(_id);
-
-        console.log(__customer);
-
-        let { customer_addresses } = __customer ? __customer: {};
+        let { customer_addresses } = __customer ? __customer : {};
         if (customer_addresses && customer_addresses.lnegth === 0)
             __defaultAddress = true;
-            customer_addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress,pin_location })
+        customer_addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress, pin_location })
 
-        Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } }, function (err) {
-            if (err)
-                res.json({ status: 0, message: err.message });
-            else
-                res.json({ status: 1, message: 'Success', data: __customer });
-        });
+        const result = await Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } })
+        return res.json({ status: 1, message: 'Success', data: __customer });
 
 
     } catch (err) {
@@ -152,10 +142,10 @@ exports.newAddress = async function (req, res) {
 
 exports.viewAddress = async function (req, res) {
     try {
-        const { user_id } = req.user;
-        const __customer = await Customer.findById(user_id);
-        const { addresses } = __customer;
-        res.json({ status: 1, message: 'Success', data: addresses });
+        const { _id } = req.user;
+        const __customer = await Customer.findById(_id);
+        const { customer_addresses } = __customer;
+        return res.json({ status: 1, message: 'Success', data: customer_addresses });
 
     } catch (err) {
         res.json({ status: 0, message: err.message });
