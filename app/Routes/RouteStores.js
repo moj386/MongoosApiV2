@@ -3,14 +3,15 @@ const auth = require("../../middleware/auth");
 
 var storeController = require('../Controller/ControllerStores');
 
-router.route('/register')
-.post(storeController.register);
+router.route('/register').post(storeController.register);
+router.route('/login').post(storeController.login);    
+router.route('/products').get(auth, storeController.myproducts);
+router.route('/product').post(auth, storeController.addproduct)
 
-router.route('/login')
-.post(storeController.login);    
- 
-router.route('/product')
-.post(auth, storeController.addproduct)
+router.route('/product/status').post(auth, storeController.updateStatus)
+
+
+
 
 router.route('/product/id')
 .post(auth, storeController.single)
@@ -25,7 +26,7 @@ router.route('/product/extrainfo')
 router.route('/product/photos')
 .post(auth, storeController.UpdateImages);
 
-router.route('/products').get(auth, storeController.myproducts);
+
 
 router.route('/nearbystores').post(storeController.getNearBuyStores)
 
