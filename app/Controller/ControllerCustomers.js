@@ -18,7 +18,8 @@ const Orders = CustomerMaster.Orders;
 //// CUSTOMER LOGIN
 
 exports.login_register = async function (req, res) {
-    var payload = {
+    var payload = 
+    {
         origin: '00971552108371',
         destination: '00971526406502',
         message: 'This is a test message'
@@ -36,9 +37,9 @@ exports.login_register = async function (req, res) {
 exports.register = async function (req, res) {
 
     try {
-        const { _id } = req.user;
+        const { customer_id } = req.user;
         const { customer_name } = req.body;
-        const filter = { _id };
+        const filter = { _id: customer_id };
         const update = { customer_name };
 
         const result = await Customer.findOneAndUpdate(filter, update);
@@ -121,14 +122,14 @@ exports.verifyLocation = async function (req, res) {
 
 exports.newAddress = async function (req, res) {
     try {
-        const { _id } = req.user;
+        const { customer_id } = req.user;
         var __defaultAddress = false;
         const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress, pin_location } = req.body
-        const __customer = await Customer.findById(_id);
+        const __customer = await Customer.findById({_id: customer_id});
         let { customer_addresses } = __customer ? __customer : {};
         if (customer_addresses && customer_addresses.lnegth === 0)
             __defaultAddress = true;
-        customer_addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress, pin_location })
+        customer_addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
 
         const result = await Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } })
         return res.json({ status: 1, message: 'Success', data: __customer });
@@ -142,9 +143,10 @@ exports.newAddress = async function (req, res) {
 
 exports.viewAddress = async function (req, res) {
     try {
-        const { _id } = req.user;
-        const __customer = await Customer.findById(_id);
-        const { customer_addresses } = __customer;
+       
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById({_id: customer_id});
+        let { customer_addresses } = __customer;
         return res.json({ status: 1, message: 'Success', data: customer_addresses });
 
     } catch (err) {
@@ -155,13 +157,25 @@ exports.viewAddress = async function (req, res) {
 
 exports.deleteAddress = async function (req, res) {
     try {
-        var address = new Address(req.body);
-        address.save(function (err) {
-            if (err)
-                res.json({ status: 0, message: err.message });
-            else
-                res.json({ status: 1, message: 'Success', data: token });
-        });
+        var __defaultAddress = false;
+        const { customer_id } = req.user;
+        const { address_id } = req.body;
+        const __customer = await Customer.findById({_id: customer_id});
+        const { customer_addresses } = __customer;
+
+        //console.log(customer_addresses);
+
+        let filter = customer_addresses.filter(x=> x._id === address_id)
+        
+        if (filter && filter.lnegth === 0){
+            __defaultAddress = true;
+            filter[0].defaultAddress =  __defaultAddress
+        }
+        
+        await Customer.update({ _id: customer_id }, { "$set": { customer_addresses: filter } })
+
+        return  res.json({ status: 1, message: 'Success', data: __customer });
+
     } catch (err) {
         res.json({ status: 0, message: err.message });
     }
@@ -170,6 +184,14 @@ exports.deleteAddress = async function (req, res) {
 
 exports.updateAddress = async function (req, res) {
     try {
+        const { customer_id } = req.user;
+        const { address_id } = req.body;
+        const __customer = await Customer.findById({_id: customer_id});
+        const { customer_addresses } = __customer;
+        let filter = customer_addresses.filter(x=> x._id === address_id)
+
+
+
         var address = new Address(req.body);
         address.save(function (err) {
             if (err)

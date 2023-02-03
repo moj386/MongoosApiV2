@@ -11,7 +11,7 @@ const createCustomerToken = (data) => {
 
     return jwt.sign(
         {
-            _id,
+            customer_id: _id,
             customer_name,
             customer_mobile,
             customer_email
