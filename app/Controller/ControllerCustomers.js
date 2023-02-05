@@ -1,6 +1,9 @@
 const retry = require('async-retry');
 CustomerMaster = require('../Model/ModelCustomers');
 Products = require('../Model/ModelProducts');
+Stores = require('../Model/ModelStores'); 
+
+
 const jwtToken = require('../../utils/tokenHandler');
 
 const apiKey = '13858cd2ca9a13126b43356621191d9e';
@@ -11,6 +14,7 @@ var smsglobal = require('smsglobal')(apiKey, apiSecret);
 const Customer = CustomerMaster.Customer;
 const Address = CustomerMaster.CustomerAddress;
 const Orders = CustomerMaster.Orders;
+
 
 
 
@@ -114,6 +118,30 @@ exports.verifyLocation = async function (req, res) {
 
 }
 
+//////////// products ///////////
+
+exports.products = async function (req, res) {
+    try {
+        const { store_id } = req.body
+        const data = await Product.find({ product_store_id : store_id })
+        return res.json({ status: 1, message: 'Success', data });
+
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
+};
+
+exports.see_store = async function (req, res) {
+    try {
+        const { store_id } = req.body
+        const store = await Stores.findById(store_id);
+        return res.json({ status: 1, message: 'Success', data: store });
+    } catch (error) {
+       return  res.json({ status: 0, message: error.message });
+    }
+
+};
+
 
 
 
@@ -124,12 +152,14 @@ exports.newAddress = async function (req, res) {
     try {
         const { customer_id } = req.user;
         var __defaultAddress = false;
-        const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress, pin_location } = req.body
+        const { title, line1, line2,line3, addres_latitude,addres_longitude, area, state, country, mobile, pin_location } = req.body
+
+
         const __customer = await Customer.findById({_id: customer_id});
         let { customer_addresses } = __customer ? __customer : {};
         if (customer_addresses && customer_addresses.lnegth === 0)
             __defaultAddress = true;
-        customer_addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
+        customer_addresses.push({ title, line1, line2, line3, addres_latitude,addres_longitude, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
 
         const result = await Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } })
         return res.json({ status: 1, message: 'Success', data: __customer });
@@ -211,17 +241,18 @@ exports.updateAddress = async function (req, res) {
 
 exports.addCart = async function (req, res) {
     try {
-        const { user_id } = req.user;
+        const { customer_id } = req.user;
         const product = new Products(req.body)
-        const __customer = await Customer.findById(user_id);
-        var { cartItems } = __customer;
-        const quantity = product.quantity;
-        cartItems = cartItems.filter(x => x._id !== product._id)
+        const __customer = await Customer.findById(customer_id);
+    
+        var { customer_cart_products } = __customer;
+        const quantity = product.product_cart_qty;
+        customer_cart_products = customer_cart_products.filter(x => x._id !== product._id)
 
         if (quantity > 0)
-            cartItems.push(product)
+        customer_cart_products.push(product)
 
-        Customer.update({ _id: __customer._id }, { "$set": { cartItems } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_cart_products } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
@@ -237,12 +268,38 @@ exports.addCart = async function (req, res) {
 
 exports.viewCart = async function (req, res) {
     try {
-        const { user_id } = req.user;
-        const __customer = await Customer.findById(user_id);
-        const { cartItems } = __customer;
-        res.json({ status: 1, message: 'Success', data: cartItems });
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById(customer_id);
+        const { customer_cart_products } = __customer;
+ 
+        const total_amount =  customer_cart_products.reduce((acc, item) =>{
+            const { product_cart_qty, product_price } = item
+            return acc + (product_cart_qty * product_price)
+        
+          }, 0)
+        const __single = customer_cart_products? customer_cart_products[0]:{}
+        const { product_store_id } = __single? __single: {}
+
+        const store = await Stores.findById(product_store_id);
+        const { store_delivery_fee, store_latitude, store_longitude } = store ? store : {}
+
+        const data = {
+            productsCart: customer_cart_products,
+            cartAmount: total_amount,
+            grand_total: total_amount,
+            item_total: total_amount,
+            vat_total: total_amount * 0.05,
+            store_delivery_fee,
+            store_latitude,
+            store_longitude
+        }
+
+        console.log(data);
+
+        return res.json({ status: 1, message: 'Success', data: data });
 
     } catch (err) {
+        console.log(err);
         res.json({ status: 0, message: err.message });
     }
 
@@ -250,9 +307,10 @@ exports.viewCart = async function (req, res) {
 
 exports.deleteCart = async function (req, res) {
     try {
-        const { user_id } = req.user;
-        const __customer = await Customer.findById(user_id);
-        Customer.update({ _id: __customer._id }, { "$set": { cartItems: [] } }, function (err) {
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById(customer_id);
+        
+        Customer.update({ _id: __customer._id }, { "$set": { customer_cart_products: [] } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else

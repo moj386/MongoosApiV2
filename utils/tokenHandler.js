@@ -7,14 +7,16 @@ const secret_key_value = TokenKey.key;
 
 const createCustomerToken = (data) => {
 
-    const { _id, customer_name, customer_mobile, customer_email } = data
+    const { _id, customer_name, customer_mobile, customer_email, customer_addresses } = data
 
     return jwt.sign(
         {
-            user_id:_id,
+            customer_id:_id,
             customer_name,
             customer_mobile,
             customer_email,
+            customer_address_verification: customer_addresses.length > 0,
+            customer_name_verification: customer_name? true: false,
             type:'USER'
         },
         secret_key_value,

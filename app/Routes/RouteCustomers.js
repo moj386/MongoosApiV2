@@ -29,4 +29,8 @@ router.route('/cart')
 router.route('/order')
 .post(auth, customerController.addOrder)
 
+
+router.route('/products').post(auth, customerController.products)
+router.route('/store/id').post(auth, customerController.see_store)
+
 module.exports = router;

@@ -47,15 +47,15 @@ exports.login = async function (req, res) {
 
 exports.getNearBuyStores = async function (req, res) {
     const { long, latt } = req.body;
+    console.log(long, latt);
     var METERS_PER_MILE = 1000
     try {
-        const data = await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [long, latt] }, $maxDistance: 8 * METERS_PER_MILE } } })
+        const data = await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } } })
         res.json({ status: 1, message: 'Success', data: data });
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }
 }
-
 
 exports.myproducts = async function (req, res) {
     try {
@@ -67,7 +67,6 @@ exports.myproducts = async function (req, res) {
         return res.json({ status: 0, message: e.message })
     }
 };
-
 
 exports.addproduct = async function (req, res) {
     const commisionFee = 1;
@@ -213,3 +212,5 @@ exports.updateExtraInfo = async function (req, res) {
     }
 
 };
+
+

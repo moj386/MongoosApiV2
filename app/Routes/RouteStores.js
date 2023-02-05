@@ -10,9 +10,6 @@ router.route('/product').post(auth, storeController.addproduct)
 
 router.route('/product/status').post(auth, storeController.updateStatus)
 
-
-
-
 router.route('/product/id')
 .post(auth, storeController.single)
 .put(auth, storeController.updateSingle)
@@ -25,9 +22,6 @@ router.route('/product/extrainfo')
 
 router.route('/product/photos')
 .post(auth, storeController.UpdateImages);
-
-
-
 router.route('/nearbystores').post(storeController.getNearBuyStores)
 
 
