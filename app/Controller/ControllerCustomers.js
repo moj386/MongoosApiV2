@@ -3,6 +3,8 @@ CustomerMaster = require('../Model/ModelCustomers');
 Products = require('../Model/ModelProducts');
 Stores = require('../Model/ModelStores'); 
 
+const Stripe = require("stripe");
+const stripe = Stripe('sk_test_51JyCUYBT956xZwz7nei3IIxmGn8dWakQ4tNhI6zAaJ6HoNYrA38lm9KlDtZCiKWLCE1sQaA1afVtqPPvVDbuwY8G00two4ZMaZ');
 
 const jwtToken = require('../../utils/tokenHandler');
 
@@ -281,20 +283,20 @@ exports.viewCart = async function (req, res) {
         const { product_store_id } = __single? __single: {}
 
         const store = await Stores.findById(product_store_id);
-        const { store_delivery_fee, store_latitude, store_longitude } = store ? store : {}
-
+        const { store_delivery_fee, store_latitude, store_longitude, store_name } = store ? store : {}
+        const __products = customer_cart_products.sort((a,b)=> new Date(b.product_created_ts) - new Date(a.product_created_ts));
         const data = {
-            productsCart: customer_cart_products,
+            productsCart: __products,
             cartAmount: total_amount,
             grand_total: total_amount,
             item_total: total_amount,
             vat_total: total_amount * 0.05,
             store_delivery_fee,
             store_latitude,
-            store_longitude
+            store_longitude,
+            store_name,
+            store_id: product_store_id
         }
-
-        console.log(data);
 
         return res.json({ status: 1, message: 'Success', data: data });
 
@@ -372,65 +374,56 @@ exports.addOrder = async function (req, res) {
 };
 
 
-function CalculateShippingFee(freeShipping, productSize) {
-    if (freeShipping) {
-        return 0
+
+////// payments
+
+
+
+exports.makePayment = async function (req, res) {
+    try {
+
+        const { customer_id } = req.user
+        const { canSaveCard, order_net_amount } = req.body
+        let ephemeralKey = {}
+        
+        const customer_data = await Customer.findById(customer_id)
+        let { customer_pay_token } = customer_data ? customer_data : {}
+
+        if (!customer_pay_token && canSaveCard) {
+            const customer = await stripe.customers.create();
+            customer_pay_token = customer.id
+            await Customer.updateOne({_id: customer_id}, { customer_pay_token})
+        }
+        if (canSaveCard) {
+            ephemeralKey = await stripe.ephemeralKeys.create(
+                { customer: customer_pay_token },
+                { apiVersion: '2022-08-01' }
+            )
+        }
+
+        let pay_intent = {
+            amount: Math.round(order_net_amount * 100),
+            currency: "AED",
+            setup_future_usage: 'on_session',
+            automatic_payment_methods: { enabled: true }
+        }
+
+        if (canSaveCard) {
+            pay_intent = Object.assign({}, pay_intent, { customer: customer_pay_token })
+        }
+
+        const paymentIntent = await stripe.paymentIntents.create(pay_intent);
+
+        const clientSecret = paymentIntent.client_secret;
+        return res.json({
+            status: 1, message: "Payment initiated", data: {
+                paymentIntent: clientSecret,
+                ephemeralKey: ephemeralKey.secret,
+                customer: customer_pay_token
+            }
+        });
+    } catch (err) {
+        return res.json({ status: 0, message: err.message })
+        }
+
     }
-
-    if (productSize === 1) { /// 15 AED
-
-
-    }
-
-
-    return 0;
-}
-
-
-
-// exports.view = function (req, res) {
-
-//     Product.find({category: req.params.product_id }, function (err, data) {
-//         if (err)
-//             res.send(err);
-//         res.json({
-//             message: 'Contact details loading..',
-//             data: data
-//         });
-//     });
-// };
-
-
-// // Handle update contact info
-// exports.update = function (req, res) {
-//     Contact.findById(req.params.contact_id, function (err, contact) {
-//         if (err)
-//             res.send(err);
-//         contact.name = req.body.name ? req.body.name : contact.name;
-//         contact.gender = req.body.gender;
-//         contact.email = req.body.email;
-//         contact.phone = req.body.phone;
-// // save the contact and check for errors
-//         contact.save(function (err) {
-//             if (err)
-//                 res.json(err);
-//             res.json({
-//                 message: 'Contact Info updated',
-//                 data: contact
-//             });
-//         });
-//     });
-// };
-// // Handle delete contact
-// exports.delete = function (req, res) {
-//     Contact.remove({
-//         _id: req.params.contact_id
-//     }, function (err, contact) {
-//         if (err)
-//             res.send(err);
-//         res.json({
-//             status: "success",
-//             message: 'Contact deleted'
-//         });
-//     });
-// };

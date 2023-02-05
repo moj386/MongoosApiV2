@@ -36,7 +36,8 @@ var ProductSchema = mongoose.Schema({
     product_active_status:Boolean,
     product_keywords: String,
     product_cart_qty: Number,
-    product_cart_amount: Number
+    product_cart_amount: Number,
+    product_created_ts: { type: Date, default: Date.now }
 });
 
 module.exports = ProductSchema
