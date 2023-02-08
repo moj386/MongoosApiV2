@@ -115,9 +115,6 @@ exports.verifyLocation = async function (req, res) {
 }
 
 
-
-
-
 //// CUSTOMER ADDRESS
 
 exports.newAddress = async function (req, res) {
