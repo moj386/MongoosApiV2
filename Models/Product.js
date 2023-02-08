@@ -14,6 +14,7 @@ const __variation = {
     option_details:option_details 
 }
 
+
 var ProductSchema = mongoose.Schema({
     _id: String,
     product_store_id:{ type: Number, required: true },

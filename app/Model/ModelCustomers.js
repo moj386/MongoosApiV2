@@ -3,8 +3,7 @@ const mongoose = require("mongoose");
 ProductSchema = require("../../Models/Product")
 AddressSchema = require("../../Models/Address")
 TimeSchema = require("../../Models/TimeMaster")
-
-
+Address = require("../../Models/Address")
 const userSchema = new mongoose.Schema({
     
     customer_name: String,
@@ -26,15 +25,14 @@ const userSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
 
   order_store_id: { type: String, required: true },
+  order_customer_id:  { type: String, required: true },
   order_datetime:{ type: Date, default: Date.now },
   order_gross_amount: Number,
   order_discount_amount: Number,
+  order_delivery_charges: Number,
   order_net_amount: Number,
-  order_customer_id:  { type: String, required: true },
   order_customer_email:  String,
-  order_customer_mobile:  { type: String, required: true },
-  order_customer_address: String,
-  order_customer_pin_location: { type: { type: String }, coordinates: [] },
+  order_customer_mobile: String ,
   order_customer_comments: String,
   order_cooking_instructions: String,
   order_staus: Number,
@@ -52,7 +50,8 @@ const orderSchema = new mongoose.Schema({
   order_customer_remarks: String,
   order_store_rating: Number,
   order_store_remarks: String,
-  order_products:[ProductSchema]
+  order_products:[ProductSchema],
+  order_address: Address
 
 });
 

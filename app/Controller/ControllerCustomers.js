@@ -328,38 +328,40 @@ exports.deleteCart = async function (req, res) {
 
 exports.addOrder = async function (req, res) {
     try {
-        const { user_id } = req.user;
+        const { customer_id } = req.user;
         const order = new Orders(req.body)
-        const __customer = await Customer.findById(user_id);
-        const { cartItems } = __customer;
-        const shippingFee = 15;
+        const __customer = await Customer.findById(customer_id);
+        const { customer_cart_products } = __customer;
 
         let cartTotalPrice = 0;
         let cartBeforeDiscountPrice = 0;
         let cartCouponPrice = 0;
         let cartNetAmount = 0;
-        let deliveryCharges = 0;
+        let cartDeliveryCharges = 0;
 
-        cartItems.forEach(item => {
-            cartTotalPrice = + item.rate;
-            cartBeforeDiscountPrice = + item.rateBeforeDiscount;
-            deliveryCharges = + item.FreeShipping ? 0 : 1;
+
+        customer_cart_products.forEach(item => {
+            cartTotalPrice = + item.product_cart_amount;
+            cartBeforeDiscountPrice = + item.product_price_before_discount
         });
 
 
         cartNetAmount = (cartTotalPrice - cartCouponPrice).toFixed(2);
 
-        order.grossAmount = cartTotalPrice;
-        order.discountAmount = (cartBeforeDiscountPrice - cartTotalPrice).toFixed(2);
-        order.deliveryChargesStore = 0
+        order.order_gross_amount = cartTotalPrice;
+        order.order_discount_amount = (cartBeforeDiscountPrice - cartTotalPrice).toFixed(2);
+        order.order_delivery_charges = cartDeliveryCharges;
+        order.order_service_charges = 0;
+        order.order_net_amount = cartNetAmount;
 
-        order.customer_id = user_id;
-        order.customer_email = __customer.email;
-        order.customer_mobile = __customer.mobile;
-        order.customer_name = __customer.name;
+        order.order_customer_id = customer_id;
+        order.order_customer_email = __customer.customer_email;
+        order.order_customer_mobile = __customer.customer_mobile;
+        order.order_products = customer_cart_products
+    
 
         const fnSaveOrder = () => order.save();
-        const fnClearCart = () => Customer.update({ _id: user_id }, { "$set": { cartItems: [] } });
+        const fnClearCart = () => Customer.updateOne({ _id: customer_id }, { "$set": { customer_cart_products: [] } });
         const numRetry = { retries: 3 }
 
         await retry(fnSaveOrder, numRetry).then(async data => {

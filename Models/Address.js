@@ -12,7 +12,7 @@ const AddressSchema = new mongoose.Schema({
     area: String,
     state: String,
     country: { type: String, default: "AE" },
-    mobile: { type: String, required: true },
+    mobile: { type: String },
     defaultAddress: { type: Boolean, required: true },
     status: { type: Boolean, default: true },
     created: { type: Date, default: Date.now }
