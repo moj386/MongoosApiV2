@@ -35,4 +35,10 @@ router.route('/store/id').post(auth, customerController.see_store)
 router.route('/payment').post(auth, customerController.makePayment)
 
 
+router.route('/wishlist/products').post(auth, customerController.add_wishlist_products)
+router.route('/wishlist/restaurant').post(auth, customerController.add_wishlist_restaurant)
+
+router.route('/wishlist/products').get(auth, customerController.view_wishlist_products)
+router.route('/wishlist/restaurant').get(auth, customerController.view_wishlist_restaurant)
+
 module.exports = router;

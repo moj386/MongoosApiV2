@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema({
     customer_created: { type: Date, default: Date.now, select: false },
     customer_addresses:[AddressSchema],
     customer_cart_products: [ProductSchema],
+    customer_wishlist_restaurant:[String],
+    customer_wishlist_products:[String],
     customer_otp: { type: Number, select: false },
     customer_otp_expiry: { type: Date, select: false },
     customer_pay_token: String

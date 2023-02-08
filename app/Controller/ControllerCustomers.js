@@ -1,7 +1,7 @@
 const retry = require('async-retry');
 CustomerMaster = require('../Model/ModelCustomers');
 Products = require('../Model/ModelProducts');
-Stores = require('../Model/ModelStores'); 
+Stores = require('../Model/ModelStores');
 
 const Stripe = require("stripe");
 const stripe = Stripe('sk_test_51JyCUYBT956xZwz7nei3IIxmGn8dWakQ4tNhI6zAaJ6HoNYrA38lm9KlDtZCiKWLCE1sQaA1afVtqPPvVDbuwY8G00two4ZMaZ');
@@ -24,7 +24,7 @@ const Orders = CustomerMaster.Orders;
 //// CUSTOMER LOGIN
 
 exports.login_register = async function (req, res) {
-    var payload = 
+    var payload =
     {
         origin: '00971552108371',
         destination: '00971526406502',
@@ -125,7 +125,7 @@ exports.verifyLocation = async function (req, res) {
 exports.products = async function (req, res) {
     try {
         const { store_id } = req.body
-        const data = await Product.find({ product_store_id : store_id })
+        const data = await Product.find({ product_store_id: store_id })
         return res.json({ status: 1, message: 'Success', data });
 
     } catch (e) {
@@ -139,13 +139,10 @@ exports.see_store = async function (req, res) {
         const store = await Stores.findById(store_id);
         return res.json({ status: 1, message: 'Success', data: store });
     } catch (error) {
-       return  res.json({ status: 0, message: error.message });
+        return res.json({ status: 0, message: error.message });
     }
 
 };
-
-
-
 
 
 //// CUSTOMER ADDRESS
@@ -154,14 +151,14 @@ exports.newAddress = async function (req, res) {
     try {
         const { customer_id } = req.user;
         var __defaultAddress = false;
-        const { title, line1, line2,line3, addres_latitude,addres_longitude, area, state, country, mobile, pin_location } = req.body
+        const { title, line1, line2, line3, addres_latitude, addres_longitude, area, state, country, mobile, pin_location } = req.body
 
 
-        const __customer = await Customer.findById({_id: customer_id});
+        const __customer = await Customer.findById({ _id: customer_id });
         let { customer_addresses } = __customer ? __customer : {};
         if (customer_addresses && customer_addresses.lnegth === 0)
             __defaultAddress = true;
-        customer_addresses.push({ title, line1, line2, line3, addres_latitude,addres_longitude, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
+        customer_addresses.push({ title, line1, line2, line3, addres_latitude, addres_longitude, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
 
         const result = await Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } })
         return res.json({ status: 1, message: 'Success', data: __customer });
@@ -175,9 +172,9 @@ exports.newAddress = async function (req, res) {
 
 exports.viewAddress = async function (req, res) {
     try {
-       
+
         const { customer_id } = req.user;
-        const __customer = await Customer.findById({_id: customer_id});
+        const __customer = await Customer.findById({ _id: customer_id });
         let { customer_addresses } = __customer;
         return res.json({ status: 1, message: 'Success', data: customer_addresses });
 
@@ -192,21 +189,21 @@ exports.deleteAddress = async function (req, res) {
         var __defaultAddress = false;
         const { customer_id } = req.user;
         const { address_id } = req.body;
-        const __customer = await Customer.findById({_id: customer_id});
+        const __customer = await Customer.findById({ _id: customer_id });
         const { customer_addresses } = __customer;
 
         //console.log(customer_addresses);
 
-        let filter = customer_addresses.filter(x=> x._id === address_id)
-        
-        if (filter && filter.lnegth === 0){
+        let filter = customer_addresses.filter(x => x._id === address_id)
+
+        if (filter && filter.lnegth === 0) {
             __defaultAddress = true;
-            filter[0].defaultAddress =  __defaultAddress
+            filter[0].defaultAddress = __defaultAddress
         }
-        
+
         await Customer.update({ _id: customer_id }, { "$set": { customer_addresses: filter } })
 
-        return  res.json({ status: 1, message: 'Success', data: __customer });
+        return res.json({ status: 1, message: 'Success', data: __customer });
 
     } catch (err) {
         res.json({ status: 0, message: err.message });
@@ -218,9 +215,9 @@ exports.updateAddress = async function (req, res) {
     try {
         const { customer_id } = req.user;
         const { address_id } = req.body;
-        const __customer = await Customer.findById({_id: customer_id});
+        const __customer = await Customer.findById({ _id: customer_id });
         const { customer_addresses } = __customer;
-        let filter = customer_addresses.filter(x=> x._id === address_id)
+        let filter = customer_addresses.filter(x => x._id === address_id)
 
 
 
@@ -246,13 +243,13 @@ exports.addCart = async function (req, res) {
         const { customer_id } = req.user;
         const product = new Products(req.body)
         const __customer = await Customer.findById(customer_id);
-    
+
         var { customer_cart_products } = __customer;
         const quantity = product.product_cart_qty;
         customer_cart_products = customer_cart_products.filter(x => x._id !== product._id)
 
         if (quantity > 0)
-        customer_cart_products.push(product)
+            customer_cart_products.push(product)
 
         Customer.updateOne({ _id: __customer._id }, { "$set": { customer_cart_products } }, function (err) {
             if (err)
@@ -273,18 +270,18 @@ exports.viewCart = async function (req, res) {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
         const { customer_cart_products } = __customer;
- 
-        const total_amount =  customer_cart_products.reduce((acc, item) =>{
+
+        const total_amount = customer_cart_products.reduce((acc, item) => {
             const { product_cart_qty, product_price } = item
             return acc + (product_cart_qty * product_price)
-        
-          }, 0)
-        const __single = customer_cart_products? customer_cart_products[0]:{}
-        const { product_store_id } = __single? __single: {}
+
+        }, 0)
+        const __single = customer_cart_products ? customer_cart_products[0] : {}
+        const { product_store_id } = __single ? __single : {}
 
         const store = await Stores.findById(product_store_id);
         const { store_delivery_fee, store_latitude, store_longitude, store_name } = store ? store : {}
-        const __products = customer_cart_products.sort((a,b)=> new Date(b.product_created_ts) - new Date(a.product_created_ts));
+        const __products = customer_cart_products.sort((a, b) => new Date(b.product_created_ts) - new Date(a.product_created_ts));
         const data = {
             productsCart: __products,
             cartAmount: total_amount,
@@ -311,7 +308,7 @@ exports.deleteCart = async function (req, res) {
     try {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
-        
+
         Customer.update({ _id: __customer._id }, { "$set": { customer_cart_products: [] } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
@@ -375,11 +372,7 @@ exports.addOrder = async function (req, res) {
     }
 };
 
-
-
 ////// payments
-
-
 
 exports.makePayment = async function (req, res) {
     try {
@@ -387,14 +380,14 @@ exports.makePayment = async function (req, res) {
         const { customer_id } = req.user
         const { canSaveCard, order_net_amount } = req.body
         let ephemeralKey = {}
-        
+
         const customer_data = await Customer.findById(customer_id)
         let { customer_pay_token } = customer_data ? customer_data : {}
 
         if (!customer_pay_token && canSaveCard) {
             const customer = await stripe.customers.create();
             customer_pay_token = customer.id
-            await Customer.updateOne({_id: customer_id}, { customer_pay_token})
+            await Customer.updateOne({ _id: customer_id }, { customer_pay_token })
         }
         if (canSaveCard) {
             ephemeralKey = await stripe.ephemeralKeys.create(
@@ -426,6 +419,102 @@ exports.makePayment = async function (req, res) {
         });
     } catch (err) {
         return res.json({ status: 0, message: err.message })
+    }
+
+}
+
+
+///// WISHLIST    
+
+exports.add_wishlist_products = async function (req, res) {
+
+    try {
+        let added = false
+        const { customer_id } = req.user;
+        const { product_id } = req.body;
+        const __customer = await Customer.findById(customer_id);
+        let { customer_wishlist_products } = __customer
+        
+        if(customer_wishlist_products.includes(product_id)){
+            customer_wishlist_products.filter(x => x === product_id)
+        }else {
+            customer_wishlist_products.push(product_id)
+            added = true
         }
 
+        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_wishlist_products } }, function (err) {
+            if (err)
+                return res.json({ status: 0, message: err.message });
+            else
+                return res.json({ status: 1, message: 'Success', data:  { added } });
+        });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
     }
+}
+
+exports.add_wishlist_restaurant = async function (req, res) {
+
+    try {
+        let added = false
+        const { customer_id } = req.user;
+        const { product_id } = req.body;
+        const __customer = await Customer.findById(customer_id);
+        let { customer_wishlist_restaurant = [] } = __customer
+        
+        if(customer_wishlist_restaurant.includes(product_id)){
+            customer_wishlist_restaurant.filter(x => x === product_id)
+        }else {
+            customer_wishlist_restaurant.push(product_id)
+            added = true
+        }
+
+        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_wishlist_restaurant } }, function (err) {
+            if (err)
+                return res.json({ status: 0, message: err.message });
+            else
+                return res.json({ status: 1, message: 'Success', data:  { added } });
+        });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+}
+
+
+exports.view_wishlist_products = async function (req, res) {
+
+    try {
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById(customer_id);
+        let { customer_wishlist_products } = __customer
+        
+        const products = await Products.find({ _id: customer_wishlist_products})
+
+        return res.json({ status: 1, message: 'Success', data: products });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+}
+
+exports.view_wishlist_restaurant = async function (req, res) {
+
+    try {
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById(customer_id);
+        let { customer_wishlist_restaurant } = __customer
+
+        console.log('customer_wishlist_restaurant', customer_wishlist_restaurant);
+
+        const restaurant = await Stores.find({ _id: customer_wishlist_restaurant})
+       
+        console.log('restaurant', restaurant);
+       
+        return res.json({ status: 1, message: 'Success', data: restaurant });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+}
