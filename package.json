@@ -19,7 +19,8 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
     "mongoose": "^6.0.3",
-    "smsglobal": "^1.2.4"
+    "smsglobal": "^1.2.4",
+    "stripe": "^11.9.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.12"

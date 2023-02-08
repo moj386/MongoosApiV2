@@ -1,6 +1,11 @@
 const retry = require('async-retry');
 CustomerMaster = require('../Model/ModelCustomers');
 Products = require('../Model/ModelProducts');
+Stores = require('../Model/ModelStores'); 
+
+const Stripe = require("stripe");
+const stripe = Stripe('sk_test_51JyCUYBT956xZwz7nei3IIxmGn8dWakQ4tNhI6zAaJ6HoNYrA38lm9KlDtZCiKWLCE1sQaA1afVtqPPvVDbuwY8G00two4ZMaZ');
+
 const jwtToken = require('../../utils/tokenHandler');
 
 const apiKey = '13858cd2ca9a13126b43356621191d9e';
@@ -11,6 +16,7 @@ var smsglobal = require('smsglobal')(apiKey, apiSecret);
 const Customer = CustomerMaster.Customer;
 const Address = CustomerMaster.CustomerAddress;
 const Orders = CustomerMaster.Orders;
+
 
 
 
@@ -114,6 +120,30 @@ exports.verifyLocation = async function (req, res) {
 
 }
 
+//////////// products ///////////
+
+exports.products = async function (req, res) {
+    try {
+        const { store_id } = req.body
+        const data = await Product.find({ product_store_id : store_id })
+        return res.json({ status: 1, message: 'Success', data });
+
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
+};
+
+exports.see_store = async function (req, res) {
+    try {
+        const { store_id } = req.body
+        const store = await Stores.findById(store_id);
+        return res.json({ status: 1, message: 'Success', data: store });
+    } catch (error) {
+       return  res.json({ status: 0, message: error.message });
+    }
+
+};
+
 
 //// CUSTOMER ADDRESS
 
@@ -121,12 +151,14 @@ exports.newAddress = async function (req, res) {
     try {
         const { customer_id } = req.user;
         var __defaultAddress = false;
-        const { title, line1, line2, latlang, area, state, country, mobile, defaultAddress, pin_location } = req.body
+        const { title, line1, line2,line3, addres_latitude,addres_longitude, area, state, country, mobile, pin_location } = req.body
+
+
         const __customer = await Customer.findById({_id: customer_id});
         let { customer_addresses } = __customer ? __customer : {};
         if (customer_addresses && customer_addresses.lnegth === 0)
             __defaultAddress = true;
-        customer_addresses.push({ title, line1, line2, latlang, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
+        customer_addresses.push({ title, line1, line2, line3, addres_latitude,addres_longitude, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
 
         const result = await Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } })
         return res.json({ status: 1, message: 'Success', data: __customer });
@@ -208,17 +240,18 @@ exports.updateAddress = async function (req, res) {
 
 exports.addCart = async function (req, res) {
     try {
-        const { user_id } = req.user;
+        const { customer_id } = req.user;
         const product = new Products(req.body)
-        const __customer = await Customer.findById(user_id);
-        var { cartItems } = __customer;
-        const quantity = product.quantity;
-        cartItems = cartItems.filter(x => x._id !== product._id)
+        const __customer = await Customer.findById(customer_id);
+    
+        var { customer_cart_products } = __customer;
+        const quantity = product.product_cart_qty;
+        customer_cart_products = customer_cart_products.filter(x => x._id !== product._id)
 
         if (quantity > 0)
-            cartItems.push(product)
+        customer_cart_products.push(product)
 
-        Customer.update({ _id: __customer._id }, { "$set": { cartItems } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_cart_products } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
@@ -234,12 +267,38 @@ exports.addCart = async function (req, res) {
 
 exports.viewCart = async function (req, res) {
     try {
-        const { user_id } = req.user;
-        const __customer = await Customer.findById(user_id);
-        const { cartItems } = __customer;
-        res.json({ status: 1, message: 'Success', data: cartItems });
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById(customer_id);
+        const { customer_cart_products } = __customer;
+ 
+        const total_amount =  customer_cart_products.reduce((acc, item) =>{
+            const { product_cart_qty, product_price } = item
+            return acc + (product_cart_qty * product_price)
+        
+          }, 0)
+        const __single = customer_cart_products? customer_cart_products[0]:{}
+        const { product_store_id } = __single? __single: {}
+
+        const store = await Stores.findById(product_store_id);
+        const { store_delivery_fee, store_latitude, store_longitude, store_name } = store ? store : {}
+        const __products = customer_cart_products.sort((a,b)=> new Date(b.product_created_ts) - new Date(a.product_created_ts));
+        const data = {
+            productsCart: __products,
+            cartAmount: total_amount,
+            grand_total: total_amount,
+            item_total: total_amount,
+            vat_total: total_amount * 0.05,
+            store_delivery_fee,
+            store_latitude,
+            store_longitude,
+            store_name,
+            store_id: product_store_id
+        }
+
+        return res.json({ status: 1, message: 'Success', data: data });
 
     } catch (err) {
+        console.log(err);
         res.json({ status: 0, message: err.message });
     }
 
@@ -247,9 +306,10 @@ exports.viewCart = async function (req, res) {
 
 exports.deleteCart = async function (req, res) {
     try {
-        const { user_id } = req.user;
-        const __customer = await Customer.findById(user_id);
-        Customer.update({ _id: __customer._id }, { "$set": { cartItems: [] } }, function (err) {
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById(customer_id);
+        
+        Customer.update({ _id: __customer._id }, { "$set": { customer_cart_products: [] } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
@@ -311,65 +371,56 @@ exports.addOrder = async function (req, res) {
 };
 
 
-function CalculateShippingFee(freeShipping, productSize) {
-    if (freeShipping) {
-        return 0
+
+////// payments
+
+
+
+exports.makePayment = async function (req, res) {
+    try {
+
+        const { customer_id } = req.user
+        const { canSaveCard, order_net_amount } = req.body
+        let ephemeralKey = {}
+        
+        const customer_data = await Customer.findById(customer_id)
+        let { customer_pay_token } = customer_data ? customer_data : {}
+
+        if (!customer_pay_token && canSaveCard) {
+            const customer = await stripe.customers.create();
+            customer_pay_token = customer.id
+            await Customer.updateOne({_id: customer_id}, { customer_pay_token})
+        }
+        if (canSaveCard) {
+            ephemeralKey = await stripe.ephemeralKeys.create(
+                { customer: customer_pay_token },
+                { apiVersion: '2022-08-01' }
+            )
+        }
+
+        let pay_intent = {
+            amount: Math.round(order_net_amount * 100),
+            currency: "AED",
+            setup_future_usage: 'on_session',
+            automatic_payment_methods: { enabled: true }
+        }
+
+        if (canSaveCard) {
+            pay_intent = Object.assign({}, pay_intent, { customer: customer_pay_token })
+        }
+
+        const paymentIntent = await stripe.paymentIntents.create(pay_intent);
+
+        const clientSecret = paymentIntent.client_secret;
+        return res.json({
+            status: 1, message: "Payment initiated", data: {
+                paymentIntent: clientSecret,
+                ephemeralKey: ephemeralKey.secret,
+                customer: customer_pay_token
+            }
+        });
+    } catch (err) {
+        return res.json({ status: 0, message: err.message })
+        }
+
     }
-
-    if (productSize === 1) { /// 15 AED
-
-
-    }
-
-
-    return 0;
-}
-
-
-
-// exports.view = function (req, res) {
-
-//     Product.find({category: req.params.product_id }, function (err, data) {
-//         if (err)
-//             res.send(err);
-//         res.json({
-//             message: 'Contact details loading..',
-//             data: data
-//         });
-//     });
-// };
-
-
-// // Handle update contact info
-// exports.update = function (req, res) {
-//     Contact.findById(req.params.contact_id, function (err, contact) {
-//         if (err)
-//             res.send(err);
-//         contact.name = req.body.name ? req.body.name : contact.name;
-//         contact.gender = req.body.gender;
-//         contact.email = req.body.email;
-//         contact.phone = req.body.phone;
-// // save the contact and check for errors
-//         contact.save(function (err) {
-//             if (err)
-//                 res.json(err);
-//             res.json({
-//                 message: 'Contact Info updated',
-//                 data: contact
-//             });
-//         });
-//     });
-// };
-// // Handle delete contact
-// exports.delete = function (req, res) {
-//     Contact.remove({
-//         _id: req.params.contact_id
-//     }, function (err, contact) {
-//         if (err)
-//             res.send(err);
-//         res.json({
-//             status: "success",
-//             message: 'Contact deleted'
-//         });
-//     });
-// };

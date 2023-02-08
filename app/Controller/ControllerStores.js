@@ -3,6 +3,8 @@ Product = require('../Model/ModelProducts');
 Categories = require('../Model/ModelMasters');
 Product = require('../Model/ModelProducts');
 Increment = require('../../utils/fetchLastNumber');
+const jwtToken = require('../../utils/tokenHandler');
+
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -16,11 +18,11 @@ exports.register = async function (req, res) {
         const lastnumber = await Increment('stores')
         var store = new Stores(req.body);
         store._id = lastnumber
-        encryptedPassword = await bcrypt.hash(store.store_password, 10);
-        store.store_password = encryptedPassword;
+        store.store_password = await bcrypt.hash(store.store_password, 10);
         store.store_email = store.store_email.toLowerCase();
         const customer = await store.save();
-        res.json({ status: 1, message: 'Success', data: customer });
+
+        return res.json({ status: 1, message: 'Success', data: customer });
 
     } catch (err) {
         res.json({ status: 0, message: err.message });
@@ -31,28 +33,13 @@ exports.register = async function (req, res) {
 exports.login = async function (req, res) {
     try {
         const { store_email, store_password } = req.body;
-        if (!(store_email && store_password)) {
-            res.status(400).send("All inputs are required");
-        }
         const user = await Stores.findOne({ store_email }).select("+store_password");
-        if (user && (await bcrypt.compare(store_password, user.store_password))) {
-            const token = jwt.sign(
-                {
-                    user_id: user._id,
-                    email: store_email
-                },
-                secret_key_value,
-                {
-                    expiresIn: "240h",
-                }
-            );
-            user.store_access_token = token;
-            user.store_password = null;
-            res.json({ status: 1, message: 'Success', data: user });
-            return;
-        }
-        res.status(400).send("Invalid Credentials");
 
+        if (user && (await bcrypt.compare(store_password, user.store_password))) {
+            const token = jwtToken.createStoreToken(user)
+            return res.json({ status: 1, message: 'Success', data: { token } });
+        }
+        return res.status(400).send("Invalid Credentials");
     } catch (err) {
         res.json({ status: 0, message: err.message });
     }
@@ -60,53 +47,54 @@ exports.login = async function (req, res) {
 
 exports.getNearBuyStores = async function (req, res) {
     const { long, latt } = req.body;
+    console.log(long, latt);
     var METERS_PER_MILE = 1000
     try {
-        const data = await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [ long,latt ] }, $maxDistance: 8 * METERS_PER_MILE } } })
+        const data = await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } } })
         res.json({ status: 1, message: 'Success', data: data });
     } catch (e) {
-        res.json({ status: 0, message: e.message});
+        res.json({ status: 0, message: e.message });
     }
 }
 
+exports.myproducts = async function (req, res) {
+    try {
+        const { store_id } = req.user
+        const data = await Product.find({ product_store_id : store_id })
+        return res.json({ status: 1, message: 'Success', data });
 
-exports.myproducts = function (req, res) {
-    const { user_id } = req.user
-    Product.find({ storeId: user_id }, function (err, data) {
-        if (err) {
-            res.json({ status: 0, message: err.message });
-            return
-        }
-        res.json({ status: 1, message: 'Success', data });
-    });
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
 };
 
-
 exports.addproduct = async function (req, res) {
-    const commisionFee = 1.15;
-    const baseURL = "https://zainexpress.ae/assets/photos/display/"
+    const commisionFee = 1;
     try {
-        const { user_id } = req.user
+        const { store_id } = req.user
         var product = new Product(req.body);
         const lastnumber = await Increment('products')
         product._id = 'ZX' + lastnumber
+        product.product_store_id = store_id;
         
-        const discountPercentage = product.store_discount_percentage ? product.store_discount_percentage : 0;
-        const storeRate = product.store_rate;
-        var sellingRate = product.store_rate;
+        const discountPercentage = product.product_discount_percentage ? product.product_discount_percentage : 0;
+        const storeRate = product.product_store_price;
+        var sellingRate = product.product_store_price;
+
         if (discountPercentage && discountPercentage > 0) {
             sellingRate = (sellingRate - (sellingRate * discountPercentage) / 100).toFixed(2);
         }
         const rateBeforeDiscount = (storeRate * commisionFee).toFixed(2);
         sellingRate = (sellingRate * commisionFee).toFixed(2);
-        product.price = sellingRate;
-        product.price_before_discount = rateBeforeDiscount;
-        product.store_discount_percentage = discountPercentage;
-        product.storeId = user_id;
-        product.image = baseURL + product.image
-
+        product.product_price = sellingRate;
+        product.product_price_before_discount = rateBeforeDiscount;
+        product.product_discount_percentage = discountPercentage;
+        product. product_status = false
+        product. product_is_customisable = false
+       
         const item = await product.save();
-        res.json({ status: 1, message: 'Success', data: item });
+        
+        return res.json({ status: 1, message: 'Success', data: item });
     } catch (error) {
         res.json({ status: 0, message: error.message });
     }
@@ -114,11 +102,12 @@ exports.addproduct = async function (req, res) {
 
 exports.single = async function (req, res) {
     try {
-        const { user_id } = req.user
-        const { product } = req.body
-        const data = await Product.find({ _id: product, storeId: user_id }).select("+store_rate")
+        const { store_id } = req.user
+        const { product_id } = req.body
+       
+        const data = await Product.find({ _id: product_id, product_store_id: store_id }).select("+product_store_price")
         const top = data[0]
-        res.json({ status: 1, message: 'Success', data: top });
+        return res.json({ status: 1, message: 'Success', data: top });
 
     } catch (error) {
         res.json({ status: 0, message: error.message });
@@ -128,19 +117,30 @@ exports.single = async function (req, res) {
 
 exports.UpdateImages = async function (req, res) {
     try {
-        const baseL = "https://zainexpress.ae/assets/photos/details/"
-        const { product, photos } = req.body
-        const __product = await Product.findById(product);
-        const __imagesArray = __product.images
-        let emptyArray = []
-        photos.forEach(item => {
-            const pic = baseL + item
-            emptyArray.push(pic)
-        });
-        const newImages = [...new Set([...__imagesArray, ...emptyArray])];
-        const data = await Product.updateOne({ _id: product }, { "$set": { images: newImages } })
+        const baseL = "https://zainexpress.ae/assets/photos/display/"
+        const { product_id , product_image } = req.body
+       
+        const filter = { _id: product_id };
+        const update = { product_image: baseL+product_image  };
+        const result = await Product.findOneAndUpdate( filter, update );
 
-        res.json({ status: 1, message: 'Success', data });
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+
+};
+
+exports.updateStatus = async function (req, res) {
+    try {
+        const { product_id , product_status } = req.body
+       
+        const filter = { _id: product_id };
+        const update = { product_status  };
+        const result = await Product.findOneAndUpdate( filter, update );
+
+        return res.json({ status: 1, message: 'Success', data: result });
 
     } catch (error) {
         res.json({ status: 0, message: error.message });
@@ -149,30 +149,33 @@ exports.UpdateImages = async function (req, res) {
 };
 
 exports.updateSingle = async function (req, res) {
-    const commisionFee = 1.15;
-    const baseURL = "https://zainexpress.ae/assets/photos/display/"
+    const commisionFee = 1;
     try {
-        const { _id, image, name, uom, origin, brand, store_rate, store_discount_percentage, height, width, weight, photoHasChanged } = req.body
-        const discountPercentage = store_discount_percentage ? store_discount_percentage : 0;
-        var sellingRate = store_rate;
+     
+
+        var product = new Product(req.body);
+        const discountPercentage = product.product_discount_percentage ? product.product_discount_percentage : 0;
+        const storeRate = product.product_store_price;
+        var sellingRate = product.product_store_price;
+
 
         if (discountPercentage && discountPercentage > 0) {
             sellingRate = (sellingRate - (sellingRate * discountPercentage) / 100).toFixed(2);
         }
-        const rateBeforeDiscount = (store_rate * commisionFee).toFixed(2);
+        const rateBeforeDiscount = (storeRate * commisionFee).toFixed(2);
         sellingRate = (sellingRate * commisionFee).toFixed(2);
+        product.product_price = sellingRate;
+        product.product_price_before_discount = rateBeforeDiscount;
+        product.product_discount_percentage = discountPercentage;
 
-        const data = await Product.updateOne({ _id }, {
-            "$set": {
-                price: sellingRate,
-                price_before_discount: rateBeforeDiscount,
-                store_discount_percentage: discountPercentage,
-                image: photoHasChanged ? baseURL + image : image,
-                name, uom, origin, brand, height, width, weight, store_rate
-            }
-        })
+        console.log('xxxx',product);
 
-        res.json({ status: 1, message: 'Success', data });
+
+        const data = await Product.findOneAndUpdate({ _id: product._id },product, { new: true })
+
+       
+
+        return res.json({ status: 1, message: 'Success', data });
 
     } catch (error) {
         res.json({ status: 0, message: error.message });
@@ -209,3 +212,5 @@ exports.updateExtraInfo = async function (req, res) {
     }
 
 };
+
+

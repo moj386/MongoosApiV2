@@ -18,7 +18,8 @@ const userSchema = new mongoose.Schema({
     customer_addresses:[AddressSchema],
     customer_cart_products: [ProductSchema],
     customer_otp: { type: Number, select: false },
-    customer_otp_expiry: { type: Date, select: false }
+    customer_otp_expiry: { type: Date, select: false },
+    customer_pay_token: String
 
 });
 
