@@ -530,7 +530,7 @@ exports.search = async function (req, res) {
     const where_search = { product_store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } }, product_keywords: keyword  }  
 
     try {
-        const data = await Stores.find(where_location)
+        const store = await Stores.find(where_location)
         const products = await Products.find(where_search)
        
         res.json({ status: 1, message: 'Success', data: data });
