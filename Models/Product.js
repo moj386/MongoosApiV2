@@ -38,8 +38,12 @@ var ProductSchema = mongoose.Schema({
     product_keywords: String,
     product_cart_qty: Number,
     product_cart_amount: Number,
-    product_created_ts: { type: Date, default: Date.now }
+    product_created_ts: { type: Date, default: Date.now },
+    product_store_pin_location:  { type: { type: String }, coordinates: [] },
+
 });
+ProductSchema.index({ product_keywords: 'text' });
+
 
 module.exports = ProductSchema
 

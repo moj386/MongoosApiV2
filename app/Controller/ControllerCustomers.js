@@ -355,7 +355,7 @@ exports.addOrder = async function (req, res) {
         order.order_customer_email = __customer.customer_email;
         order.order_customer_mobile = __customer.customer_mobile;
         order.order_products = customer_cart_products
-    
+
 
         const fnSaveOrder = () => order.save();
         const fnClearCart = () => Customer.updateOne({ _id: customer_id }, { "$set": { customer_cart_products: [] } });
@@ -434,19 +434,21 @@ exports.add_wishlist_products = async function (req, res) {
         const { product_id } = req.body;
         const __customer = await Customer.findById(customer_id);
         let { customer_wishlist_products } = __customer
-        
-        if(customer_wishlist_products.includes(product_id)){
-            customer_wishlist_products.filter(x => x === product_id)
-        }else {
+
+
+        if (customer_wishlist_products.includes(product_id)) {
+            customer_wishlist_products = customer_wishlist_products.filter(x => x !== product_id)
+
+        } else {
             customer_wishlist_products.push(product_id)
             added = true
         }
 
-        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_wishlist_products } }, function (err) {
+        Customer.updateOne({ _id: customer_id }, { "$set": { customer_wishlist_products } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
-                return res.json({ status: 1, message: 'Success', data:  { added } });
+                return res.json({ status: 1, message: 'Success', data: added });
         });
 
     } catch (err) {
@@ -462,19 +464,19 @@ exports.add_wishlist_restaurant = async function (req, res) {
         const { product_id } = req.body;
         const __customer = await Customer.findById(customer_id);
         let { customer_wishlist_restaurant = [] } = __customer
-        
-        if(customer_wishlist_restaurant.includes(product_id)){
-            customer_wishlist_restaurant.filter(x => x === product_id)
-        }else {
+
+        if (customer_wishlist_restaurant.includes(product_id)) {
+            customer_wishlist_restaurant = customer_wishlist_restaurant.filter(x => x !== product_id)
+        } else {
             customer_wishlist_restaurant.push(product_id)
             added = true
         }
 
-        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_wishlist_restaurant } }, function (err) {
+        Customer.updateOne({ _id: customer_id }, { "$set": { customer_wishlist_restaurant } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
-                return res.json({ status: 1, message: 'Success', data:  { added } });
+                return res.json({ status: 1, message: 'Success', data: { added } });
         });
 
     } catch (err) {
@@ -489,8 +491,8 @@ exports.view_wishlist_products = async function (req, res) {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
         let { customer_wishlist_products } = __customer
-        
-        const products = await Products.find({ _id: customer_wishlist_products})
+
+        const products = await Products.find({ _id: customer_wishlist_products })
 
         return res.json({ status: 1, message: 'Success', data: products });
 
@@ -508,13 +510,31 @@ exports.view_wishlist_restaurant = async function (req, res) {
 
         console.log('customer_wishlist_restaurant', customer_wishlist_restaurant);
 
-        const restaurant = await Stores.find({ _id: customer_wishlist_restaurant})
-       
+        const restaurant = await Stores.find({ _id: customer_wishlist_restaurant })
+
         console.log('restaurant', restaurant);
-       
+
         return res.json({ status: 1, message: 'Success', data: restaurant });
 
     } catch (err) {
         res.json({ status: 0, message: err.message });
+    }
+}
+
+
+exports.search = async function (req, res) {
+
+    const { keyword, long, latt } = req.body;
+    var METERS_PER_MILE = 1000
+    const where_location = { store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } }, store_keywords: keyword  }
+    const where_search = { product_store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } }, product_keywords: keyword  }  
+
+    try {
+        const data = await Stores.find(where_location)
+        const products = await Products.find(where_search)
+       
+        res.json({ status: 1, message: 'Success', data: data });
+    } catch (e) {
+        res.json({ status: 0, message: e.message });
     }
 }

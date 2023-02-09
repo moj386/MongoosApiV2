@@ -47,7 +47,6 @@ exports.login = async function (req, res) {
 
 exports.getNearBuyStores = async function (req, res) {
     const { long, latt } = req.body;
-    console.log(long, latt);
     var METERS_PER_MILE = 1000
     try {
         const data = await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } } })

@@ -41,4 +41,7 @@ router.route('/wishlist/restaurant').post(auth, customerController.add_wishlist_
 router.route('/wishlist/products').get(auth, customerController.view_wishlist_products)
 router.route('/wishlist/restaurant').get(auth, customerController.view_wishlist_restaurant)
 
+
+router.route('/search').post(customerController.view_wishlist_restaurant)
+
 module.exports = router;
