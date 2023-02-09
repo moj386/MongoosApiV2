@@ -28,8 +28,9 @@ var storesSchema = mongoose.Schema({
         type: Date,
         default: Date.now,
         select: false
-    }
+    },
+  store_keywords: String,
 });
 
-storesSchema.index({ store_pin_location: "2dsphere" })
+storesSchema.index({ store_pin_location: "2dsphere", store_keywords: "text" })
 module.exports = mongoose.model('stores', storesSchema);

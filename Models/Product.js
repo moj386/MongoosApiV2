@@ -42,7 +42,7 @@ var ProductSchema = mongoose.Schema({
     product_store_pin_location:  { type: { type: String }, coordinates: [] },
 
 });
-ProductSchema.index({ product_keywords: 'text' });
+ProductSchema.index({ product_store_pin_location: "2dsphere", product_keywords: 'text' });
 
 
 module.exports = ProductSchema
