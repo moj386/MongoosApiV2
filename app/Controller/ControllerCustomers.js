@@ -521,7 +521,6 @@ exports.view_wishlist_restaurant = async function (req, res) {
     }
 }
 
-
 exports.search = async function (req, res) {
 
     const { keyword, long, latt } = req.body;

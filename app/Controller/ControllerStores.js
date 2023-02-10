@@ -4,12 +4,8 @@ Categories = require('../Model/ModelMasters');
 Product = require('../Model/ModelProducts');
 Increment = require('../../utils/fetchLastNumber');
 const jwtToken = require('../../utils/tokenHandler');
-
-
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const TokenKey = require('../../middleware/secret_key');
-const secret_key_value = TokenKey.key;
+
 
 
 exports.register = async function (req, res) {
@@ -71,6 +67,9 @@ exports.addproduct = async function (req, res) {
     const commisionFee = 1;
     try {
         const { store_id } = req.user
+        const __store = await Stores.findById(store_id)
+        const { store_pin_location } = __store
+
         var product = new Product(req.body);
         const lastnumber = await Increment('products')
         product._id = 'ZX' + lastnumber
@@ -88,8 +87,10 @@ exports.addproduct = async function (req, res) {
         product.product_price = sellingRate;
         product.product_price_before_discount = rateBeforeDiscount;
         product.product_discount_percentage = discountPercentage;
-        product. product_status = false
-        product. product_is_customisable = false
+        product.product_status = false
+        product.product_is_customisable = false
+        product.product_store_pin_location = store_pin_location
+        product.product_keywords = product.product_title
        
         const item = await product.save();
         
