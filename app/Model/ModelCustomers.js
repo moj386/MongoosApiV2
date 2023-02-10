@@ -4,6 +4,8 @@ ProductSchema = require("../../Models/Product")
 AddressSchema = require("../../Models/Address")
 TimeSchema = require("../../Models/TimeMaster")
 Address = require("../../Models/Address")
+Stores = require('../../Models/Stores');
+
 const userSchema = new mongoose.Schema({
     
     customer_name: String,
@@ -53,7 +55,8 @@ const orderSchema = new mongoose.Schema({
   order_store_rating: Number,
   order_store_remarks: String,
   order_products:[ProductSchema],
-  order_address: Address
+  order_customer_address: Address,
+  order_store_address: Stores
 
 });
 
@@ -61,7 +64,7 @@ const orderSchema = new mongoose.Schema({
 
 
 
-orderSchema.index({ customer_id: 1});  
+orderSchema.index({ customer_id: "1"});  
 
 exports.Customer = mongoose.model("customers", userSchema);
 exports.Orders = mongoose.model("orders", orderSchema);

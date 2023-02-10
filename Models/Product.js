@@ -19,7 +19,7 @@ var ProductSchema = mongoose.Schema({
     _id: String,
     product_store_id:{ type: Number, required: true },
     product_title: { type: String, required: true },
-    product_store_price: { type: Number, required: true, select: false },
+    product_store_price: { type: Number, required: false, select: false },
     product_discount_percentage: { type: Number, required: true },
     product_price_before_discount: { type: Number, required: true },
     product_price: { type: Number, required: true },
@@ -43,8 +43,6 @@ var ProductSchema = mongoose.Schema({
 
 });
 ProductSchema.index({ product_store_pin_location: "2dsphere", product_keywords: 'text' });
-
-
 module.exports = ProductSchema
 
 

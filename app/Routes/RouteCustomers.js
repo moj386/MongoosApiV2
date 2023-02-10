@@ -21,6 +21,9 @@ router.route('/address')
 .put(auth, customerController.updateAddress)
 .get(auth,customerController.viewAddress)
 
+router.route('/address/id').get(auth,customerController.viewAddress_single)
+
+
 router.route('/cart')
 .get(auth,customerController.viewCart)
 .post(auth, customerController.addCart)
@@ -28,6 +31,9 @@ router.route('/cart')
 
 router.route('/order')
 .post(auth, customerController.addOrder)
+
+router.route('/order/id')
+.post(auth, customerController.viewOrder)
 
 
 router.route('/products').post(auth, customerController.products)
@@ -42,6 +48,6 @@ router.route('/wishlist/products').get(auth, customerController.view_wishlist_pr
 router.route('/wishlist/restaurant').get(auth, customerController.view_wishlist_restaurant)
 
 
-router.route('/search').post(customerController.view_wishlist_restaurant)
+router.route('/search').post(customerController.search)
 
 module.exports = router;

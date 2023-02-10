@@ -156,12 +156,14 @@ exports.newAddress = async function (req, res) {
 
         const __customer = await Customer.findById({ _id: customer_id });
         let { customer_addresses } = __customer ? __customer : {};
-        if (customer_addresses && customer_addresses.lnegth === 0)
+        if (customer_addresses.length === 0){
             __defaultAddress = true;
+        }
+           
         customer_addresses.push({ title, line1, line2, line3, addres_latitude, addres_longitude, area, state, country, mobile, defaultAddress: __defaultAddress, pin_location })
 
-        const result = await Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } })
-        return res.json({ status: 1, message: 'Success', data: __customer });
+        await Customer.update({ _id: __customer._id }, { "$set": { customer_addresses } })
+        return res.json({ status: 1, message: 'Success', data: customer_addresses });
 
 
     } catch (err) {
@@ -184,6 +186,22 @@ exports.viewAddress = async function (req, res) {
 
 };
 
+
+exports.viewAddress_single = async function (req, res) {
+    try {
+
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById({ _id: customer_id });
+        let { customer_addresses } = __customer;
+        const single = customer_addresses.filter(x=> x.defaultAddress === true)[0]
+        return res.json({ status: 1, message: 'Success', data: single });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+
+};
+
 exports.deleteAddress = async function (req, res) {
     try {
         var __defaultAddress = false;
@@ -196,7 +214,7 @@ exports.deleteAddress = async function (req, res) {
 
         let filter = customer_addresses.filter(x => x._id === address_id)
 
-        if (filter && filter.lnegth === 0) {
+        if (filter && filter.length === 0) {
             __defaultAddress = true;
             filter[0].defaultAddress = __defaultAddress
         }
@@ -330,6 +348,9 @@ exports.addOrder = async function (req, res) {
         const __customer = await Customer.findById(customer_id);
         const { customer_cart_products } = __customer;
 
+        const __store = await Stores.findById(order.order_store_id);
+
+
         let cartTotalPrice = 0;
         let cartBeforeDiscountPrice = 0;
         let cartCouponPrice = 0;
@@ -341,8 +362,6 @@ exports.addOrder = async function (req, res) {
             cartTotalPrice = + item.product_cart_amount;
             cartBeforeDiscountPrice = + item.product_price_before_discount
         });
-
-
         cartNetAmount = (cartTotalPrice - cartCouponPrice).toFixed(2);
 
         order.order_gross_amount = cartTotalPrice;
@@ -355,6 +374,7 @@ exports.addOrder = async function (req, res) {
         order.order_customer_email = __customer.customer_email;
         order.order_customer_mobile = __customer.customer_mobile;
         order.order_products = customer_cart_products
+        order.order_store_address = __store
 
 
         const fnSaveOrder = () => order.save();
@@ -371,6 +391,19 @@ exports.addOrder = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
+
+exports.viewOrder = async function (req, res) {
+    try {
+        const { order_id } = req.body;
+        const order = await Orders.findById(order_id)
+        return res.json({ status: 1, message: 'Success', data: order });
+        
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+};
+
 
 ////// payments
 
@@ -532,7 +565,7 @@ exports.search = async function (req, res) {
         const store = await Stores.find(where_location)
         const products = await Products.find(where_search)
        
-        res.json({ status: 1, message: 'Success', data: data });
+        res.json({ status: 1, message: 'Success', data: { store, products } });
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }
