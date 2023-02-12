@@ -29,11 +29,19 @@ router.route('/cart')
 .post(auth, customerController.addCart)
 .delete(auth, customerController.deleteCart)
 
-router.route('/order')
-.post(auth, customerController.addOrder)
+router.route('/order').post(auth, customerController.addOrder)
+router.route('/order/instruction').post(customerController.updateOrderInstruction)
+
 
 router.route('/order/id')
 .post(auth, customerController.viewOrder)
+
+router.route('/order/all')
+.get(auth, customerController.viewOrders)
+
+router.route('/order/repeat')
+.post(auth, customerController.repeatOrder)
+
 
 
 router.route('/products').post(auth, customerController.products)
@@ -49,5 +57,10 @@ router.route('/wishlist/restaurant').get(auth, customerController.view_wishlist_
 
 
 router.route('/search').post(customerController.search)
+
+
+
+
+
 
 module.exports = router;

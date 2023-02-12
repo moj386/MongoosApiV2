@@ -1,7 +1,7 @@
 
 var mongoose = require('mongoose');
 
-var storesSchema = mongoose.Schema({
+var OrderStoreSchema = mongoose.Schema({
   _id: String,
   store_name:  { type: String },
   store_flat_discount :  { type: Number },
@@ -20,6 +20,6 @@ var storesSchema = mongoose.Schema({
   store_avg_delivery_minutes: {  type: Number }
 });
 
-storesSchema.index({ store_pin_location: "2dsphere"})
+OrderStoreSchema.index({ store_pin_location: "2dsphere"})
 
-module.exports = storesSchema
+module.exports = OrderStoreSchema

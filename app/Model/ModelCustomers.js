@@ -4,7 +4,7 @@ ProductSchema = require("../../Models/Product")
 AddressSchema = require("../../Models/Address")
 TimeSchema = require("../../Models/TimeMaster")
 Address = require("../../Models/Address")
-Stores = require('../../Models/Stores');
+OrderStoreSchema = require('../../Models/stores');
 
 const userSchema = new mongoose.Schema({
     
@@ -56,7 +56,7 @@ const orderSchema = new mongoose.Schema({
   order_store_remarks: String,
   order_products:[ProductSchema],
   order_customer_address: Address,
-  order_store_address: Stores
+  order_store_address: OrderStoreSchema
 
 });
 
