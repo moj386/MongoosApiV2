@@ -266,7 +266,7 @@ exports.addCart = async function (req, res) {
         const quantity = product.product_cart_qty;
         removeOtherStores = removeOtherStores.filter(x => x._id !== product._id)
         if (quantity > 0)
-        removeOtherStores.push(product)
+            removeOtherStores.push(product)
 
         Customer.updateOne({ _id: __customer._id }, { "$set": { customer_cart_products: removeOtherStores } }, function (err) {
             if (err)
@@ -395,6 +395,31 @@ exports.viewOrder = async function (req, res) {
     try {
         const { order_id } = req.body;
         const order = await Orders.findById(order_id)
+        return res.json({ status: 1, message: 'Success', data: order });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+};
+
+exports.viewOrderHome = async function (req, res) {
+    try {
+        const { customer_id } = req.user;
+        // const order = await Orders.find({order_customer_id: customer_id})
+        // .sort({'order_datetime': -1})
+        // .limit(15)
+
+        const order = await Orders.aggregate([
+            {$match: { order_customer_id: customer_id } },
+            //{$project:{order_customer_id:1}},
+            {$sort: { order_datetime: -1 }},
+            {$group:{_id: '$order_customer_id', count:{$sum:1}}}, 
+            {$limit:5}
+        ])
+
+
+    
+
         return res.json({ status: 1, message: 'Success', data: order });
 
     } catch (err) {

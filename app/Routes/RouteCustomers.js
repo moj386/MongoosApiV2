@@ -42,6 +42,10 @@ router.route('/order/all')
 router.route('/order/repeat')
 .post(auth, customerController.repeatOrder)
 
+router.route('/order/home')
+.post(auth, customerController.viewOrderHome)
+
+
 
 
 router.route('/products').post(auth, customerController.products)

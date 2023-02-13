@@ -42,23 +42,8 @@ router.route('/colors')
 router.route('/sizes')
 .get(masterController.GetSizes)
 
-
-// router.route('/login')
-// .post(customerController.login);    
-
-// router.route('/loginstatus')
-// .post(auth, customerController.loginstatus); 
-
-// router.route('/address')
-// .post(auth, customerController.newAddress)
-// .delete(auth, customerController.deleteAddress)
-// .put(auth, customerController.updateAddress)
-// .get(auth,customerController.viewAddress)
-
-// router.route('/cart')
-// .get(auth,customerController.viewCart)
-// .post(auth, customerController.addCart)
-// .delete(auth, customerController.deleteCart)
+router.route('/banner/hero')
+.get(masterController.get_Hero_Banner)
 
 
 module.exports = router;

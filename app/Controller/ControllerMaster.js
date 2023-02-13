@@ -11,6 +11,31 @@ const Featured = Masters.Featured;
 
 const Colors = Masters.Colors;
 const Sizes = Masters.Sizes;
+const HeroBanners = Masters.HeroBanners
+
+
+exports.upload_Hero_Banner = async function (req, res) {
+    try {
+        const heroBanners = new HeroBanners(req.body)
+        await heroBanners.save()
+        res.json({ status: 1, message: 'Success', data: category });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+};
+
+exports.get_Hero_Banner = async function (req, res) {
+    try {
+        const heroBanners  = await HeroBanners.find({})
+        res.json({ status: 1, message: 'Success', data: heroBanners });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+};
+
+
 
 exports.viewDates = async function (req, res) {
     try {
