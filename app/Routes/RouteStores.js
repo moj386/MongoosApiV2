@@ -25,4 +25,8 @@ router.route('/product/photos')
 router.route('/nearbystores').post(storeController.getNearBuyStores)
 
 
+router.route('/order/all').get(auth, storeController.myOrders)
+
+
+
 module.exports = router;

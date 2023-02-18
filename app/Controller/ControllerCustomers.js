@@ -11,7 +11,7 @@ const jwtToken = require('../../utils/tokenHandler');
 const apiKey = '13858cd2ca9a13126b43356621191d9e';
 const apiSecret = 'c576cb5416a5d7062c25ecf84aac1310';
 var smsglobal = require('smsglobal')(apiKey, apiSecret);
-
+Increment = require('../../utils/fetchLastNumber');
 
 const Customer = CustomerMaster.Customer;
 const Address = CustomerMaster.CustomerAddress;
@@ -349,6 +349,8 @@ exports.addOrder = async function (req, res) {
         const __store = await Stores.findById(order.order_store_id);
 
 
+        const lastnumber = await Increment('orders')
+
         let cartTotalPrice = 0;
         let cartBeforeDiscountPrice = 0;
         let cartCouponPrice = 0;
@@ -362,6 +364,7 @@ exports.addOrder = async function (req, res) {
         });
         cartNetAmount = (cartTotalPrice - cartCouponPrice).toFixed(2);
 
+        order._id = lastnumber;
         order.order_gross_amount = cartTotalPrice;
         order.order_discount_amount = (cartBeforeDiscountPrice - cartTotalPrice).toFixed(2);
         order.order_delivery_charges = cartDeliveryCharges;

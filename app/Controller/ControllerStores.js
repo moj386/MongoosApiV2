@@ -5,6 +5,8 @@ Product = require('../Model/ModelProducts');
 Increment = require('../../utils/fetchLastNumber');
 const jwtToken = require('../../utils/tokenHandler');
 const bcrypt = require('bcryptjs');
+CustomerMaster = require('../Model/ModelCustomers');
+const Orders = CustomerMaster.Orders;
 
 
 
@@ -62,6 +64,21 @@ exports.myproducts = async function (req, res) {
         return res.json({ status: 0, message: e.message })
     }
 };
+
+exports.myOrders = async function (req, res) {
+    try {
+        const { store_id } = req.user
+        const data = await Orders.find({ order_store_id : store_id })
+        return res.json({ status: 1, message: 'Success', data });
+
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
+};
+
+
+
+
 
 exports.addproduct = async function (req, res) {
     const commisionFee = 1;

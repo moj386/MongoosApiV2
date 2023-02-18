@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-
+  _id: String,
   order_store_id: { type: String, required: true },
   order_customer_id:  { type: String, required: true },
   order_datetime:{ type: Date, default: Date.now },
