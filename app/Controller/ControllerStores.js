@@ -76,8 +76,46 @@ exports.myOrders = async function (req, res) {
     }
 };
 
+exports.singleOrders = async function (req, res) {
+    try {
+        const { order_id } = req.body
+        const data = await Orders.findById(order_id)
+        return res.json({ status: 1, message: 'Success', data });
+
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
+};
+
+exports.singleOrderStatus = async function (req, res) {
+    try {
+        const { order_id, order_status } = req.body
+        const data = await Orders.findById(order_id)
+        
+        data.order_store_accept_status = order_status
+        data.order_store_accept_ts = new Date()
+        await data.save()
+        
+        return res.json({ status: 1, message: 'Success', data });
+
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
+};
 
 
+exports.myPayments = async function (req, res) {
+    try {
+        const { store_id } = req.user
+        const data = await Orders.find({ order_store_id : store_id, order_store_payment_status: true })
+
+
+        return res.json({ status: 1, message: 'Success', data });
+
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
+};
 
 
 exports.addproduct = async function (req, res) {
