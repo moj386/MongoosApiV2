@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-
+  _id: String,
   order_store_id: { type: String, required: true },
   order_customer_id:  { type: String, required: true },
   order_datetime:{ type: Date, default: Date.now },
@@ -40,7 +40,9 @@ const orderSchema = new mongoose.Schema({
   order_customer_comments: String,
   order_cooking_instructions: String,
   order_staus: Number,
+
   order_payment_status: Number,
+
   order_payment_collection_status: Number,
   order_payment_collected_amount: Number,
   order_delivery_status: String,
@@ -50,6 +52,13 @@ const orderSchema = new mongoose.Schema({
   order_accepted_driver_id: String,
   order_accepted_driver_ts: Date,
   order_deliver_ts: Date,
+  order_store_accept_status: { type: Number, default: 0 },
+  order_store_accept_ts: Date,
+
+  order_store_payment_status: Boolean,
+  order_store_paid_amount: Number,
+
+
   order_customer_rating: Number,
   order_customer_remarks: String,
   order_store_rating: Number,

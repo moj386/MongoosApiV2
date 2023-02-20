@@ -11,7 +11,7 @@ const customerRoutes = require('./app/Routes/RouteCustomers');
 const masterRoutes = require('./app/Routes/RouteMasters');
 const storesRoutes = require('./app/Routes/RouteStores');
 
-var port = process.env.PORT || 5000;
+var port = process.env.PORT || 5001;
 let app = express();
 
 app.use(cors());
@@ -38,5 +38,5 @@ app.use('/other', masterRoutes)
 app.use('/store', storesRoutes)
 
 app.listen(port, () => {
-    console.log("Server is listening on port 5000");
+    console.log("Server is listening on port 5001");
 });
