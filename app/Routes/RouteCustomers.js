@@ -22,6 +22,8 @@ router.route('/address')
 .get(auth,customerController.viewAddress)
 
 router.route('/address/id').get(auth,customerController.viewAddress_single)
+router.route('/address/default').post(auth,customerController.setDefaultAddress)
+
 
 
 router.route('/cart')
@@ -43,7 +45,7 @@ router.route('/order/repeat')
 .post(auth, customerController.repeatOrder)
 
 router.route('/order/home')
-.post(auth, customerController.viewOrderHome)
+.get(auth, customerController.viewOrderHome)
 
 
 
