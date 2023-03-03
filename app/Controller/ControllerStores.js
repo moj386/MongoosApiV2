@@ -7,7 +7,10 @@ const jwtToken = require('../../utils/tokenHandler');
 const bcrypt = require('bcryptjs');
 CustomerMaster = require('../Model/ModelCustomers');
 const Orders = CustomerMaster.Orders;
-
+const { BlobServiceClient } = require("@azure/storage-blob");
+const connStr = "DefaultEndpointsProtocol=https;AccountName=zainexpressassets;AccountKey=L8QacscQxsGVWbhjSVNozCkuxBulccPj5Yt8SHNZtE92OJO+DMRgsSGUU+EgDZTZLW2gir9sflh6+ASt7I6T2w==;EndpointSuffix=core.windows.net";
+const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
+const imagesMimeRegex = new RegExp("image/(.*)");
 
 
 exports.register = async function (req, res) {
@@ -172,16 +175,23 @@ exports.single = async function (req, res) {
 
 exports.UpdateImages = async function (req, res) {
     try {
-        const baseL = "https://zainexpress.ae/assets/photos/display/"
-        const { product_id , product_image } = req.body
-       
+        const baseL = "https://zainexpressassets.blob.core.windows.net/assets/"
+        const { store_id } = req.user;
+        const { product_id } = req.body
+        const { product_image } = req.files
+        const containerClient = blobServiceClient.getContainerClient("assets");
+        if (!product_image) return res.sendStatus(400);
+        if (!imagesMimeRegex.test(product_image.mimetype)) return res.sendStatus(400);
+        const fileName = store_id +'_'+ Date.now()+'.jpg';
+        const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+         await blockBlobClient.upload(product_image.data , product_image.size);
         const filter = { _id: product_id };
-        const update = { product_image: baseL+product_image  };
+        const update = { product_image: baseL+fileName, product_image_name: fileName };
         const result = await Product.findOneAndUpdate( filter, update );
-
         return res.json({ status: 1, message: 'Success', data: result });
 
     } catch (error) {
+        console.log(error);
         res.json({ status: 0, message: error.message });
     }
 
@@ -262,6 +272,17 @@ exports.updateExtraInfo = async function (req, res) {
             { "$set": { fullDescription: extraInfo } })
         res.json({ status: 1, message: 'Success', data });
 
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+
+};
+
+exports.myStore = async function (req, res) {
+    try {
+        const { store_id } = req.user
+        const data = await Stores.findById(store_id)
+        return res.json({ status: 1, message: 'Success', data: data });
     } catch (error) {
         res.json({ status: 0, message: error.message });
     }

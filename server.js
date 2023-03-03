@@ -1,6 +1,8 @@
 let express = require('express');
 const dbConfig = require('./config/database.js');
 var cors = require('cors');
+const fileUpload = require('express-fileupload');
+
 
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -16,7 +18,7 @@ let app = express();
 
 app.use(cors());
 app.options('*', cors());
-
+app.use(fileUpload({limits: {fileSize: 10000000,},abortOnLimit: true,}));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 

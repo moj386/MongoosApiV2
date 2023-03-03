@@ -30,6 +30,9 @@ router.route('/order/id').post(auth, storeController.singleOrders)
 router.route('/order/updatestatus').post(auth, storeController.singleOrderStatus)
 router.route('/order/payments').get(auth, storeController.myPayments)
 
+router.route('/id').get(auth, storeController.myStore)
+
+
 
 
 module.exports = router;
