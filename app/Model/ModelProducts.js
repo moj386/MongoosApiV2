@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 ProductSchema = require("../../Models/Product")
-
-
-ProductSchema.index({ product_active_status: 1} , {product_keywords: 1}, {product_store_id: 1});  
+ProductSchema.index({ product_store_pin_location: "2dsphere", product_store_keywords:"text"}); 
 module.exports = mongoose.model('Products', ProductSchema);
+
+

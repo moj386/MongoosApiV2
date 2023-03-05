@@ -17,7 +17,7 @@ const __variation = {
 
 var ProductSchema = mongoose.Schema({
     _id: String,
-    product_store_id:{ type: Number, required: true },
+    product_store_id:{ type: String, required: true },
     product_title: { type: String, required: true },
     product_store_price: { type: Number, required: false, select: false },
     product_discount_percentage: { type: Number, required: true },
@@ -31,19 +31,22 @@ var ProductSchema = mongoose.Schema({
     product_image: { type: String, required: false },
     product_image_name: { type: String, required: false },
     product_status: { type: Boolean, required: true },
-    product_available_fm: { type: Date, required: true },
-    product_available_till: { type: Date, required: true },
+
+    product_available_fm: { type: Number, required: true },
+    product_available_till: { type: Number, required: true },
+
+
     product_category:[String],
     product_variation:[__variation],
     product_active_status:Boolean,
     product_keywords: String,
+    product_store_keywords: String,
     product_cart_qty: Number,
     product_cart_amount: Number,
     product_created_ts: { type: Date, default: Date.now },
     product_store_pin_location:  { type: { type: String }, coordinates: [] },
 
-});
-ProductSchema.index({ product_store_pin_location: "2dsphere", product_keywords: 'text' });
+}); 
 module.exports = ProductSchema
 
 

@@ -33,6 +33,7 @@ router.route('/order/payments').get(auth, storeController.myPayments)
 router.route('/id').get(auth, storeController.myStore)
 
 
+router.route('/nearbystoresV2').post(storeController.getNearBuyStoresV2)
 
 
 module.exports = router;
