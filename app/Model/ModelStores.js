@@ -24,6 +24,7 @@ var storesSchema = mongoose.Schema({
   store_best_opt4: {  type: String },
   store_access_token: String,
   store_notification_tokens:[],
+  
   store_create_date: {
         type: Date,
         default: Date.now,

@@ -22,6 +22,12 @@ router.route('/product/extrainfo')
 
 router.route('/product/photos')
 .post(auth, storeController.UpdateImages);
+
+router.route('/upload/photo')
+.post(auth, storeController.update_store_photo);
+
+
+
 router.route('/nearbystores').post(storeController.getNearBuyStores)
 
 

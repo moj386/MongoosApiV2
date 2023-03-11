@@ -10,6 +10,8 @@ const { BlobServiceClient } = require("@azure/storage-blob");
 const connStr = "DefaultEndpointsProtocol=https;AccountName=zainexpressassets;AccountKey=L8QacscQxsGVWbhjSVNozCkuxBulccPj5Yt8SHNZtE92OJO+DMRgsSGUU+EgDZTZLW2gir9sflh6+ASt7I6T2w==;EndpointSuffix=core.windows.net";
 const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
 const imagesMimeRegex = new RegExp("image/(.*)");
+const baseL = "https://zainexpressassets.blob.core.windows.net/assets/"
+
 
 
 exports.register = async function (req, res) {
@@ -32,8 +34,8 @@ exports.register = async function (req, res) {
 
 exports.login = async function (req, res) {
     try {
-        const { store_email, store_password } = req.body;
-        const user = await Stores.findOne({ store_email }).select("+store_password");
+        const { store_mobile, store_password } = req.body;
+        const user = await Stores.findOne({ store_mobile }).select("+store_password");
 
         if (user && (await bcrypt.compare(store_password, user.store_password))) {
             const token = jwtToken.createStoreToken(user)
@@ -42,6 +44,27 @@ exports.login = async function (req, res) {
         return res.status(400).send("Invalid Credentials");
     } catch (err) {
         res.json({ status: 0, message: err.message });
+    }
+}
+
+exports.update_store_photo = async function (req, res){
+    try {
+        const { store_id } = req.user
+        const { product_image } = req.files
+        const containerClient = blobServiceClient.getContainerClient("assets");
+        if (!product_image) return res.sendStatus(400);
+        if (!imagesMimeRegex.test(product_image.mimetype)) return res.sendStatus(400);
+        const fileName = store_id + '_' + Date.now() + '.jpg';
+        const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+        await blockBlobClient.upload(product_image.data, product_image.size);
+    
+        const filter = { _id: store_id };
+        const update = { store_image: baseL + fileName };
+        const result = await Stores.findOneAndUpdate(filter, update);
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
     }
 }
 
@@ -213,6 +236,7 @@ exports.myproducts = async function (req, res) {
     try {
         const { store_id } = req.user
         const data = await Product.find({ product_store_id: store_id })
+
         return res.json({ status: 1, message: 'Success', data });
 
     } catch (e) {
@@ -328,7 +352,6 @@ exports.single = async function (req, res) {
 
 exports.UpdateImages = async function (req, res) {
     try {
-        const baseL = "https://zainexpressassets.blob.core.windows.net/assets/"
         const { store_id } = req.user;
         const { product_id } = req.body
         const { product_image } = req.files
