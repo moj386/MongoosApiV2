@@ -16,11 +16,12 @@ const baseL = "https://zainexpressassets.blob.core.windows.net/assets/"
 
 exports.register = async function (req, res) {
     try {
-
+        const password = '123456'
         const lastnumber = await Increment('stores')
+       
         var store = new Stores(req.body);
         store._id = lastnumber
-        store.store_password = await bcrypt.hash(store.store_password, 10);
+        store.store_password = await bcrypt.hash(password, 10);
         store.store_email = store.store_email.toLowerCase();
         const customer = await store.save();
 
@@ -68,12 +69,22 @@ exports.update_store_photo = async function (req, res){
     }
 }
 
+exports.list = async function (req, res) {
+    try {
+        const data = await Stores.find({})
+        return res.json({ status: 1, message: 'Success', data: data });
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+}
+
+
 exports.getNearBuyStores = async function (req, res) {
     const { long, latt } = req.body;
     var METERS_PER_MILE = 1000
     try {
         const data = await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } } })
-        res.json({ status: 1, message: 'Success', data: data });
+        return res.json({ status: 1, message: 'Success', data: data });
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }

@@ -12,6 +12,7 @@ const productRoutes = require('./app/Routes/RouteProducts');
 const customerRoutes = require('./app/Routes/RouteCustomers');
 const masterRoutes = require('./app/Routes/RouteMasters');
 const storesRoutes = require('./app/Routes/RouteStores');
+const adminRoutes = require('./app/Routes/RouteAdmin');
 
 var port = process.env.PORT || 5001;
 let app = express();
@@ -38,6 +39,8 @@ app.use('/shop', productRoutes);
 app.use('/customer', customerRoutes);
 app.use('/other', masterRoutes)
 app.use('/store', storesRoutes)
+app.use('/admin', adminRoutes)
+
 
 app.listen(port, () => {
     console.log("Server is listening on port 5001");

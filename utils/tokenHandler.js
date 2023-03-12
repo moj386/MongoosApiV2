@@ -45,10 +45,29 @@ const createStoreToken = (data) => {
     );
 }
 
+const createAdminToken = (data) => {
+
+    const { _id, name, mobile, role  } = data
+
+    return jwt.sign(
+        {
+            store_id:_id,
+            name,
+            mobile,
+            role,
+        },
+        secret_key_value,
+        {
+            expiresIn: "2400h",
+        }
+    );
+}
+
 
 
 
 module.exports = {
     createCustomerToken,
-    createStoreToken
+    createStoreToken,
+    createAdminToken
 }
