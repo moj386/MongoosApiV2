@@ -8,8 +8,8 @@ const stripe = Stripe('sk_test_51JyCUYBT956xZwz7nei3IIxmGn8dWakQ4tNhI6zAaJ6HoNYr
 
 const jwtToken = require('../../utils/tokenHandler');
 
-const apiKey = '13858cd2ca9a13126b43356621191d9e';
-const apiSecret = 'c576cb5416a5d7062c25ecf84aac1310';
+const apiKey = 'e9907a376d362dbabe3a07e13c2925ac';
+const apiSecret = '215952874d24c537c040fcd6d2200739';
 var smsglobal = require('smsglobal')(apiKey, apiSecret);
 Increment = require('../../utils/fetchLastNumber');
 
@@ -18,25 +18,29 @@ const Address = CustomerMaster.CustomerAddress;
 const Orders = CustomerMaster.Orders;
 
 
-
-
-
 //// CUSTOMER LOGIN
 
 exports.login_register = async function (req, res) {
     var payload =
     {
-        origin: '00971552108371',
-        destination: '00971526406502',
+        origin: 'test',
+        destination: '00971552108371',
         message: 'This is a test message'
     }
 
-    smsglobal.sms.send(payload, function (error, response) {
-        console.log(response);
-        console.log(error);
-    });
+    try{
+        const data  = await smsglobal.sms.send(payload)
+        res.json({ status: 1, message: data });
+    }catch(e){
+        res.json({ status: 1, message: e });
+    }
+   
+    
+    // smsglobal.sms.send(payload, function (error, response) {
+    //     return res.json({ status: 1, message: error, response });
+    // });
 
-    res.json({ status: 1, message: 'Success' });
+   
 
 }
 

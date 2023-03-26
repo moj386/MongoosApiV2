@@ -9,6 +9,9 @@ var customerController = require('../Controller/ControllerCustomers');
 router.route('/otprequest').post(customerController.otp_request); 
 router.route('/login').post(customerController.login); 
 router.route('/login').put(auth, customerController.register);
+router.route('/otp').post(customerController.login_register);
+
+
 
    
 
