@@ -11,7 +11,7 @@ const connStr = "DefaultEndpointsProtocol=https;AccountName=zainexpressassets;Ac
 const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
 const imagesMimeRegex = new RegExp("image/(.*)");
 const axios = require('axios');
-
+const email = require('../../middleware/emailService');
 const baseL = "https://zainexpressassets.blob.core.windows.net/assets/"
 
 
@@ -22,16 +22,17 @@ exports.register = async function (req, res) {
         const lastnumber = await Increment('stores')
         var store = new Stores(req.body);
 
-        // store._id = lastnumber
-        // store.store_password = await bcrypt.hash(password, 10);
-        // store.store_email = store.store_email.toLowerCase();
-        // const customer = await store.save();
+        store._id = lastnumber
+        store.store_password = await bcrypt.hash(password, 10);
+        store.store_email = store.store_email.toLowerCase();
+        const customer = await store.save();
 
-        const text = `Your login id is ${store.store_mobile} and your password id ${password}   Thank you for being a partner with Zeshop`
-
+        const text = `Your login id is ${store.store_mobile} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
+        const subject = 'New account registration | Zeshop'
         sendSMS(store.store_mobile, text)
+        email.sendEmail(store.store_email, subject, text)
 
-        return res.json({ status: 1, message: 'Success', data: 0 });
+        return res.json({ status: 1, message: 'Success', data: customer });
 
     } catch (err) {
         res.json({ status: 0, message: err.message });
@@ -44,11 +45,7 @@ const sendSMS = async ( mobile, text ) =>{
     username=ZainTrans&
     password=N5cq%7D-2C&type=0&dlr=1&destination=${mobile}&source=ZeShop&
     message=${text}`
-
-    const result = await axios.get(smsURL)
-
-    console.log(result);
-
+    await axios.get(smsURL)
 }
 
 
