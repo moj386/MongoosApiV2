@@ -2,7 +2,6 @@ Admin = require('../Model/ModelAdmin');
 const jwtToken = require('../../utils/tokenHandler');
 const bcrypt = require('bcryptjs');
 
-
 exports.register = async function (req, res) {
     try {
 
@@ -18,7 +17,6 @@ exports.register = async function (req, res) {
     }
 
 };
-
 
 exports.login = async function (req, res) {
     try {
