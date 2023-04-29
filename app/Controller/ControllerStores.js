@@ -53,7 +53,7 @@ const sendSMS = async ( mobile, text ) =>{
 exports.login = async function (req, res) {
     try {
         const { store_mobile, store_password } = req.body;
-        const user = await Stores.findOne({ store_mobile }).select("+store_password");
+        const user = await Stores.findOne({ store_email: store_mobile }).select("+store_password");
 
         if (user && (await bcrypt.compare(store_password, user.store_password))) {
             const token = jwtToken.createStoreToken(user)
