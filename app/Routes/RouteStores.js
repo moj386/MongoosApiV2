@@ -4,6 +4,7 @@ const auth = require("../../middleware/auth");
 var storeController = require('../Controller/ControllerStores');
 
 router.route('/register').post(storeController.register);
+router.route('/register').put(storeController.store_update);
 router.route('/login').post(storeController.login);    
 router.route('/products').get(auth, storeController.myproducts);
 router.route('/product').post(auth, storeController.addproduct)

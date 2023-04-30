@@ -27,7 +27,7 @@ exports.register = async function (req, res) {
         store.store_email = store.store_email.toLowerCase();
         const customer = await store.save();
 
-        const text = `Your login id is ${store.store_mobile} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
+        const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
         const subject = 'New account registration | Zeshop'
         sendSMS(store.store_mobile, text)
         email.sendEmail(store.store_email, subject, text)
@@ -64,6 +64,38 @@ exports.login = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 }
+
+
+exports.store_update = async function (req, res) {
+    try {
+        const password = '123456'
+        var store = new Stores(req.body);
+        store.store_email = store.store_email.toLowerCase();
+
+        const customer = await Stores.findOneAndUpdate(
+            { _id: store._id }, 
+            store,
+            { upsert: true, setDefaultsOnInsert: true }, 
+        );
+
+        const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
+        const subject = 'New account registration | Zeshop'
+        sendSMS(store.store_mobile, text)
+        email.sendEmail(store.store_email, subject, text)
+
+        return res.json({ status: 1, message: 'Success', data: customer });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+
+};
+
+
+
+
+
+
 
 exports.update_store_photo = async function (req, res){
     try {
