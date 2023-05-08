@@ -10,6 +10,8 @@ router.route('/products').get(auth, storeController.myproducts);
 router.route('/product').post(auth, storeController.addproduct)
 router.route('/list').get(auth, storeController.list)
 
+router.route('/testsms').get(storeController.smstest)
+
 
 router.route('/product/status').post(auth, storeController.updateStatus)
 

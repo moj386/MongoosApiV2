@@ -28,14 +28,14 @@ var ProductSchema = mongoose.Schema({
     product_rating: { type: Number, required: false },
     product_total_reviews: { type: Number, required: false },
     product_is_customisable: { type: Boolean, required: true },
-    product_image: { type: String, required: false },
     product_image_name: { type: String, required: false },
     product_status: { type: Boolean, required: true },
 
     product_available_fm: { type: Number, required: true },
     product_available_till: { type: Number, required: true },
-
-
+    product_images:[String],
+    product_images_list: [String],
+    
     product_category:[String],
     product_variation:[__variation],
     product_active_status:Boolean,

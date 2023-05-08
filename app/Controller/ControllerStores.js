@@ -40,7 +40,7 @@ exports.register = async function (req, res) {
 
 };
 
-const sendSMS = async ( mobile, text ) =>{
+const sendSMS = async (mobile, text) => {
     const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?
     username=ZainTrans&
     password=N5cq%7D-2C&type=0&dlr=1&destination=${mobile}&source=ZeShop&
@@ -48,6 +48,18 @@ const sendSMS = async ( mobile, text ) =>{
     await axios.get(smsURL)
 }
 
+//
+
+exports.smstest = async function (req, res) {
+    try {
+        const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&password=N5cq%7D-2C&type=0&dlr=1&destination=971552108371&source=ZeShop&message=Demo%20Message`
+        const uip = await axios.get(smsURL)
+        console.log(uip);
+        return res.json({ status: 1, message: 'Success', data: { uip } });
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+}
 
 
 exports.login = async function (req, res) {
@@ -73,9 +85,9 @@ exports.store_update = async function (req, res) {
         store.store_email = store.store_email.toLowerCase();
 
         const customer = await Stores.findOneAndUpdate(
-            { _id: store._id }, 
+            { _id: store._id },
             store,
-            { upsert: true, setDefaultsOnInsert: true }, 
+            { upsert: true, setDefaultsOnInsert: true },
         );
 
         const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
@@ -92,12 +104,7 @@ exports.store_update = async function (req, res) {
 };
 
 
-
-
-
-
-
-exports.update_store_photo = async function (req, res){
+exports.update_store_photo = async function (req, res) {
     try {
         const { store_id } = req.user
         const { product_image } = req.files
@@ -107,7 +114,7 @@ exports.update_store_photo = async function (req, res){
         const fileName = store_id + '_' + Date.now() + '.jpg';
         const blockBlobClient = containerClient.getBlockBlobClient(fileName);
         await blockBlobClient.upload(product_image.data, product_image.size);
-    
+
         const filter = { _id: store_id };
         const update = { store_image: baseL + fileName };
         const result = await Stores.findOneAndUpdate(filter, update);
@@ -145,15 +152,15 @@ exports.getNearBuyStoresV2 = async function (req, res) {
     const currentHH = new Date().getHours();
     const currentMM = new Date().getMinutes();
     const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
-    const location = [parseFloat(latt),parseFloat(long)]
-    
+    const location = [parseFloat(latt), parseFloat(long)]
+
     try {
         const data = await Stores.aggregate([
             {
                 $geoNear: {
                     includeLocs: "sstore_pin_location",
                     distanceField: "distance",
-                    near: {type: "Point", coordinates: location},
+                    near: { type: "Point", coordinates: location },
                     maxDistance: 108 * METERS_PER_MILE,
                     spherical: true
                 }
@@ -170,7 +177,7 @@ exports.getNearBuyStoresV2 = async function (req, res) {
                 $match: {
                     "products.product_status": true,
                     "products.product_available_fm": { $lte: currentNumber },
-                    "products.product_available_till": { $gte: currentNumber }, 
+                    "products.product_available_till": { $gte: currentNumber },
                 }
             },
             {
@@ -196,7 +203,7 @@ exports.getNearBuyStoresV2 = async function (req, res) {
                     store_best_opt4: 1,
                 }
             }
- 
+
         ])
 
         // const data = await Stores.find(
@@ -232,15 +239,15 @@ exports.getSuggestionList = async function (req, res) {
     const currentHH = new Date().getHours();
     const currentMM = new Date().getMinutes();
     const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
-    const location = [parseFloat(latt),parseFloat(long)]
-    
+    const location = [parseFloat(latt), parseFloat(long)]
+
     try {
         const data = await Stores.aggregate([
             {
                 $geoNear: {
                     includeLocs: "sstore_pin_location",
                     distanceField: "distance",
-                    near: {type: "Point", coordinates: location},
+                    near: { type: "Point", coordinates: location },
                     maxDistance: 108 * METERS_PER_MILE,
                     spherical: true
                 }
@@ -257,7 +264,7 @@ exports.getSuggestionList = async function (req, res) {
                 $match: {
                     "products.product_status": true,
                     "products.product_available_fm": { $lte: currentNumber },
-                    "products.product_available_till": { $gte: currentNumber }, 
+                    "products.product_available_till": { $gte: currentNumber },
                 }
             },
             {
@@ -283,7 +290,7 @@ exports.getSuggestionList = async function (req, res) {
                     store_best_opt4: 1,
                 }
             }
- 
+
         ])
         res.json({ status: 1, message: 'Success', data: data });
     } catch (e) {
@@ -385,7 +392,7 @@ exports.addproduct = async function (req, res) {
         product.product_is_customisable = false
         product.product_store_pin_location = store_pin_location
         product.product_keywords = product.product_title,
-        product.product_store_keywords = store_keywords
+            product.product_store_keywords = store_keywords
 
         const item = await product.save();
 
@@ -415,15 +422,11 @@ exports.UpdateImages = async function (req, res) {
         const { store_id } = req.user;
         const { product_id } = req.body
         const { product_image } = req.files
-        const containerClient = blobServiceClient.getContainerClient("assets");
-        if (!product_image) return res.sendStatus(400);
-        if (!imagesMimeRegex.test(product_image.mimetype)) return res.sendStatus(400);
-        const fileName = store_id + '_' + Date.now() + '.jpg';
-        const blockBlobClient = containerClient.getBlockBlobClient(fileName);
-        await blockBlobClient.upload(product_image.data, product_image.size);
+        const list = await uploadPic(product_image, store_id)
         const filter = { _id: product_id };
-        const update = { product_image: baseL + fileName, product_image_name: fileName };
+        const update = { product_images_list: list, product_images: list };
         const result = await Product.findOneAndUpdate(filter, update);
+
         return res.json({ status: 1, message: 'Success', data: result });
 
     } catch (error) {
@@ -433,6 +436,18 @@ exports.UpdateImages = async function (req, res) {
 
 };
 
+const uploadPic = async ( files, store_id ) =>{
+    const containerClient = blobServiceClient.getContainerClient("assets");
+    let imgNames = []
+    
+    for(const file of files){
+        const fileName = store_id+ '_'+ 1 + '_' + Date.now() + '.jpg';
+        const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+        await blockBlobClient.upload(file.data, file.size);
+        imgNames.push(baseL+fileName)
+    }
+    return imgNames
+}
 exports.updateStatus = async function (req, res) {
     try {
         const { product_id, product_status } = req.body
