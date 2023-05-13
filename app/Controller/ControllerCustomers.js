@@ -16,6 +16,8 @@ Increment = require('../../utils/fetchLastNumber');
 const Customer = CustomerMaster.Customer;
 const Address = CustomerMaster.CustomerAddress;
 const Orders = CustomerMaster.Orders;
+const axios = require('axios');
+
 
 
 //// CUSTOMER LOGIN
@@ -70,12 +72,26 @@ exports.otp_request = async function (req, res) {
     now.setMinutes(now.getMinutes() + 5);
     now = new Date(now);
     try {
+        await functionOTPSMS(customer_mobile, customer_otp)
+
+
         await Customer.updateOne({ customer_mobile }, { $set: { customer_otp, customer_otp_expiry: now } }, { upsert: true });
         res.json({ status: 1, message: 'Success', data: { otp: customer_otp } });
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }
 }
+
+const functionOTPSMS = async (mobile, customer_otp)=>{
+    const text = `${customer_otp} is your ZeShop verification code.`
+    const number = '971'+mobile.substr(-9);
+    const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&password=${encodeURIComponent('N5cq}-2C')}&type=0&dlr=1&destination=${number}&source=ZeShop&message=${encodeURIComponent(text)}`
+
+    await axios.get(smsURL)
+
+}
+
+
 
 exports.login = async function (req, res) {
     try {

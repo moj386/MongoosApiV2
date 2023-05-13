@@ -28,6 +28,10 @@ router.route('/product/extrainfo')
 router.route('/product/photos')
 .post(auth, storeController.UpdateImages);
 
+router.route('/product/photos')
+.delete(auth, storeController.deleteImages);
+
+
 router.route('/upload/photo')
 .post(auth, storeController.update_store_photo);
 

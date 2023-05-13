@@ -41,24 +41,21 @@ exports.register = async function (req, res) {
 };
 
 const sendSMS = async (mobile, text) => {
-    const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?
-    username=ZainTrans&
-    password=N5cq%7D-2C&type=0&dlr=1&destination=${mobile}&source=ZeShop&
-    message=${text}`
+    const smsURL = encodeURIComponent(`https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&
+    password=N5cq}-2C&type=0&dlr=1&destination=${mobile}&source=ZeShop&message=${text}`)
     await axios.get(smsURL)
 }
 
 //
 
 exports.smstest = async function (req, res) {
-    try {
-        const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&password=N5cq%7D-2C&type=0&dlr=1&destination=971552108371&source=ZeShop&message=Demo%20Message`
-        const uip = await axios.get(smsURL)
-        console.log(uip);
-        return res.json({ status: 1, message: 'Success', data: { uip } });
-    } catch (err) {
-        res.json({ status: 0, message: err.message });
-    }
+    // try {
+    //     const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&password=N5cq%7D-2C&type=0&dlr=1&destination=971552108371&source=ZeShop&message=Demo%20Message`
+    //     const uip = await axios.get(smsURL)
+    //     return res.json({ status: 1, message: 'Success', data: 'done' });
+    // } catch (err) {
+    //     res.json({ status: 0, message: err.message });
+    // }
 }
 
 
@@ -423,8 +420,13 @@ exports.UpdateImages = async function (req, res) {
         const { product_id } = req.body
         const { product_image } = req.files
         const list = await uploadPic(product_image, store_id)
+       
+    
+        let { product_images } = await Product.findById(product_id)
+        const mergeResult = [].concat(product_images, list);
+       
         const filter = { _id: product_id };
-        const update = { product_images_list: list, product_images: list };
+        const update = { product_images_list: mergeResult, product_images: mergeResult };
         const result = await Product.findOneAndUpdate(filter, update);
 
         return res.json({ status: 1, message: 'Success', data: result });
@@ -435,6 +437,25 @@ exports.UpdateImages = async function (req, res) {
     }
 
 };
+
+exports.deleteImages = async function (req, res) {
+    try {
+        const { product_id, imageName } = req.body
+        const { product_images } = await Product.findById(product_id)
+        const list = product_images.filter(x=> x !== imageName)
+        const filter = { _id: product_id };
+        const update = { product_images_list: list, product_images: list };
+        const result = await Product.findOneAndUpdate(filter, update);
+
+        return res.json({ status: 1, message: 'Success', data: list });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ status: 0, message: error.message });
+    }
+
+};
+
 
 const uploadPic = async ( files, store_id ) =>{
     const containerClient = blobServiceClient.getContainerClient("assets");
