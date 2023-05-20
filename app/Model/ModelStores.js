@@ -24,6 +24,8 @@ var storesSchema = mongoose.Schema({
   store_best_opt2: {  type: String },
   store_best_opt3: {  type: String },
   store_best_opt4: {  type: String },
+  store_status:{ type: Boolean, required: true },
+
   store_access_token: String,
   store_notification_tokens:[],
   

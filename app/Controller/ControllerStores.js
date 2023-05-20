@@ -29,8 +29,10 @@ exports.register = async function (req, res) {
 
         const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
         const subject = 'New account registration | Zeshop'
-        sendSMS(store.store_mobile, text)
-        email.sendEmail(store.store_email, subject, text)
+        if (store.store_status){
+            sendSMS(store.store_mobile, text)
+            email.sendEmail(store.store_email, subject, text)
+        }
 
         return res.json({ status: 1, message: 'Success', data: customer });
 
@@ -64,7 +66,7 @@ exports.login = async function (req, res) {
         const { store_email, store_password } = req.body;
         const user = await Stores.findOne({ store_email }).select("+store_password");
 
-        if (user && (await bcrypt.compare(store_password, user.store_password))) {
+        if (user && (await bcrypt.compare(store_password, user.store_password)) && user.store_status) {
             const token = jwtToken.createStoreToken(user)
             return res.json({ status: 1, message: 'Success', data: { token } });
         }
