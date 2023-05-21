@@ -66,7 +66,7 @@ exports.login = async function (req, res) {
         const { store_email, store_password } = req.body;
         const user = await Stores.findOne({ store_email }).select("+store_password");
 
-        if (user && (await bcrypt.compare(store_password, user.store_password)) && user.store_status) {
+        if (user && user.store_status && (await bcrypt.compare(store_password, user.store_password))) {
             const token = jwtToken.createStoreToken(user)
             return res.json({ status: 1, message: 'Success', data: { token } });
         }
@@ -422,8 +422,6 @@ exports.UpdateImages = async function (req, res) {
         const { product_id } = req.body
         const { product_image } = req.files
         const list = await uploadPic(product_image, store_id)
-       
-    
         let { product_images } = await Product.findById(product_id)
         const mergeResult = [].concat(product_images, list);
        
@@ -463,14 +461,27 @@ const uploadPic = async ( files, store_id ) =>{
     const containerClient = blobServiceClient.getContainerClient("assets");
     let imgNames = []
     
-    for(const file of files){
-        const fileName = store_id+ '_'+ 1 + '_' + Date.now() + '.jpg';
-        const blockBlobClient = containerClient.getBlockBlobClient(fileName);
-        await blockBlobClient.upload(file.data, file.size);
-        imgNames.push(baseL+fileName)
+    if (Array.isArray(files)){
+        for(const file of files){
+            const fileName = store_id+ '_'+ 1 + '_' + Date.now() + '.jpg';
+            const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+            await blockBlobClient.upload(file.data, file.size);
+            imgNames.push(baseL+fileName)
+        }
+        return imgNames
     }
+
+    const fileName = store_id+ '_'+ 1 + '_' + Date.now() + '.jpg';
+    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+    await blockBlobClient.upload(files.data, files.size);
+    imgNames.push(baseL+fileName)
     return imgNames
+
+    
 }
+
+
+
 exports.updateStatus = async function (req, res) {
     try {
         const { product_id, product_status } = req.body
