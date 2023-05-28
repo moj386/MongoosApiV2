@@ -29,6 +29,7 @@ exports.register = async function (req, res) {
 
         const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
         const subject = 'New account registration | Zeshop'
+        
         if (store.store_status){
             sendSMS(store.store_mobile, text)
             email.sendEmail(store.store_email, subject, text)
@@ -51,13 +52,12 @@ const sendSMS = async (mobile, text) => {
 //
 
 exports.smstest = async function (req, res) {
-    // try {
-    //     const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&password=N5cq%7D-2C&type=0&dlr=1&destination=971552108371&source=ZeShop&message=Demo%20Message`
-    //     const uip = await axios.get(smsURL)
-    //     return res.json({ status: 1, message: 'Success', data: 'done' });
-    // } catch (err) {
-    //     res.json({ status: 0, message: err.message });
-    // }
+    try {
+        email.sendEmail('asiapc000@gmail.com', 'test', 'test mail')
+        return res.json({ status: 1, message: 'Success', data: 'done' });
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
 }
 
 
@@ -479,8 +479,6 @@ const uploadPic = async ( files, store_id ) =>{
 
     
 }
-
-
 
 exports.updateStatus = async function (req, res) {
     try {
