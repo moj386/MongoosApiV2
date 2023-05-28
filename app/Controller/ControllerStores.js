@@ -18,7 +18,7 @@ const baseL = "https://zainexpressassets.blob.core.windows.net/assets/"
 
 exports.register = async function (req, res) {
     try {
-        const password = '123456'
+        const password = Math.floor(Math.random() * 899999 + 100000)
         const lastnumber = await Increment('stores')
         var store = new Stores(req.body);
 
@@ -31,7 +31,7 @@ exports.register = async function (req, res) {
         const subject = 'New account registration | Zeshop'
         
         if (store.store_status){
-            sendSMS(store.store_mobile, text)
+            //sendSMS(store.store_mobile, text)
             email.sendEmail(store.store_email, subject, text)
         }
 
