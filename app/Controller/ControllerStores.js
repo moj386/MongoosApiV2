@@ -18,7 +18,7 @@ const baseL = "https://zainexpressassets.blob.core.windows.net/assets/"
 
 exports.register = async function (req, res) {
     try {
-        const password = Math.floor(Math.random() * 899999 + 100000)
+        const password = '667544' //Math.floor(Math.random() * 899999 + 100000)
         const lastnumber = await Increment('stores')
         var store = new Stores(req.body);
 
@@ -151,8 +151,7 @@ exports.getNearBuyStoresV2 = async function (req, res) {
     const currentHH = new Date().getHours();
     const currentMM = new Date().getMinutes();
     const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
-    const location = [parseFloat(latt), parseFloat(long)]
-
+    const location = [parseFloat(latt),parseFloat(long)]
     try {
         const data = await Stores.aggregate([
             {
@@ -309,6 +308,18 @@ exports.myproducts = async function (req, res) {
         return res.json({ status: 0, message: e.message })
     }
 };
+
+exports.adminProducts = async function (req, res) {
+    try {
+        const { store_id } = req.body
+        const data = await Product.find({ product_store_id: store_id })
+        return res.json({ status: 1, message: 'Success', data });
+    } catch (e) {
+        return res.json({ status: 0, message: e.message })
+    }
+};
+
+
 
 exports.myOrders = async function (req, res) {
     try {

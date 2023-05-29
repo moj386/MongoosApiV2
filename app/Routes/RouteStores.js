@@ -51,4 +51,7 @@ router.route('/id').get(auth, storeController.myStore)
 router.route('/nearbystoresV2').post(storeController.getNearBuyStoresV2)
 
 
+
+router.route('/admin/products').post(auth, storeController.adminProducts);
+
 module.exports = router;
