@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "zainexpressstore",
+  "private_key_id": "946113b7df6ffeec5ac9345e6e43df705e917a89",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC3pNR+3XV1EZwl\nxYWJHFNYqJuJsuaQt47DJSuGGNy7KtrTe4g4NoPXQYF1EeQFle1qkrOKwXQgcK5Z\noC/XEGUmmZTmdRfSEbvDcHXgWOef0+loTECHskcKGCk0nkxlNHBEK2abDVD255fb\nmdAUgE6K7LH+eP1RGlRATispx7WYiqe43V5cn/sbaRZ3VFOzhODqENDyQmQPNgs7\nrSHByD3MEdbMciJ5j2RWPsSyzP/C6yp8FKv5tHnKkMQuRKoijPQb+8N3uhZmSUoO\nXMD2w6eTvvnZs7MXAxECg4pod/qqO4Udb3CtfG4WJI4zSkb+fVpHemtNNyQgLje7\n0ch/K6w5AgMBAAECggEAFfO0Gv4p/jZ+rd0wmzUxmVV+UjV6bi4i+JzG2R67s/vp\ncIJBxEZv+BkyemYLFcfYO3cR0zJQyVfu33PQhCrHjJerPukcUdYg1bnpvUmjVm2k\nZv1GcXIUH9bHhiyuASMFkICHoV00Im+IrY1zXCACQ4ULudmInltBWvZ9Hl9rC7LD\nQTQk3niUMz6T07MxxgY8CgCb0HN8Olq1RqrUam5fMf1eMCVgEPHBN3/cN0MBn6O/\nc43n4EtvlzEw3TfIjkmumRqPhm2ZZjRT0ZNEAbM9IrQBqRB3OrCVyWfvGMIRWn0r\ndIGVu/TAfBx0lLPanJlc6OaU5sODqNwu1z/2+hO7yQKBgQDwUFwVaAm94xKfmPDR\n6b9Iup1BhI9h6jylBIkIbXr1F46udh3Pyw22L1sYyfuGR+UT9drpkyH9ECPMSB30\n/jhvk4dLsr2OCm2UjLYw3D6JEJ3I1YhQcE5V03eyrWPxToqzgKlWEF11RxOk8ZMd\nHV3ciMPYdhWGePqMNxUtwe+dpwKBgQDDoYPlmA+EqPx/0D0HiEjklDWbz8GgPwVO\nYX0DZM+uhKc6dO4qFcZt/x4b9WRdv5pYbRWi071Mmwd36xjcBsgJ1XjTf0eyppG5\noIdWGeQepRPY0NxcNWJupusl8IBktTYlq8WSwNrbPVtDioINLFlINa2PmAyOrKGs\nlS4e41BjHwKBgQCrH84ywB8PxL7iPzpdgCHiXGDW4tpnUzFUIOKjybIhDWFhAmNA\nMMvWy+oGwO4HNPL/P7dfVJKDbhbPxRrv9oehjGBvmxw4JVzax0iFipBNcjOpa8Th\n4tclbqxx496jWtaR9DChRI4IkVB/yDaGKP9Jp2ounge99jAT4LWIG+3RSQKBgQCE\nATJ89BRUkap/nEXyFTYKdy+NSaz/skakUwgGCDpTKlOlEE28vCC/DEyG1Ri6YZWG\nYWUeD/5F+L4bXtnRbgoBCLiVDeeVVuwx824e3S2euAkiXhyzY5pdy+gUG6qnSdeV\np8iTc+q50TcJ5iZHOUute/r3T8P5aedWCvup//y4RQKBgGRaj4hIm0JVig6FU5C9\nZK7r7+cgOYlY4dk3OLR7BDkhVFtwnqIiOAVYNTrp8Xsm//3q6t/BdUhnmg9lGd0L\n6ytXIjgXmmqHP2KE4oH9nhUCbl65Qf+RUXuaShFjAeUujT/IyLBKm04yRfgFefIo\nzRl0Gs3cW5AnXP+hGEEgDh+G\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-dvm7k@zainexpressstore.iam.gserviceaccount.com",
+  "client_id": "103715067651896821994",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-dvm7k%40zainexpressstore.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -29,10 +29,11 @@ exports.register = async function (req, res) {
 
         const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
         const subject = 'New account registration | Zeshop'
-        
-        if (store.store_status){
-            //sendSMS(store.store_mobile, text)
+
+        if (store.store_status) {
             email.sendEmail(store.store_email, subject, text)
+            sendSMS(store.store_mobile, text)
+
         }
 
         return res.json({ status: 1, message: 'Success', data: customer });
@@ -44,9 +45,14 @@ exports.register = async function (req, res) {
 };
 
 const sendSMS = async (mobile, text) => {
-    const smsURL = encodeURIComponent(`https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&
-    password=N5cq}-2C&type=0&dlr=1&destination=${mobile}&source=ZeShop&message=${text}`)
-    await axios.get(smsURL)
+    try {
+        const smsURL = encodeURIComponent(`https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&
+        password=N5cq}-2C&type=0&dlr=1&destination=${mobile}&source=ZeShop&message=${text}`)
+        await axios.get(smsURL)
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+
 }
 
 //
@@ -151,7 +157,7 @@ exports.getNearBuyStoresV2 = async function (req, res) {
     const currentHH = new Date().getHours();
     const currentMM = new Date().getMinutes();
     const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
-    const location = [parseFloat(latt),parseFloat(long)]
+    const location = [parseFloat(latt), parseFloat(long)]
     try {
         const data = await Stores.aggregate([
             {
@@ -319,8 +325,6 @@ exports.adminProducts = async function (req, res) {
     }
 };
 
-
-
 exports.myOrders = async function (req, res) {
     try {
         const { store_id } = req.user
@@ -435,7 +439,7 @@ exports.UpdateImages = async function (req, res) {
         const list = await uploadPic(product_image, store_id)
         let { product_images } = await Product.findById(product_id)
         const mergeResult = [].concat(product_images, list);
-       
+
         const filter = { _id: product_id };
         const update = { product_images_list: mergeResult, product_images: mergeResult };
         const result = await Product.findOneAndUpdate(filter, update);
@@ -453,7 +457,7 @@ exports.deleteImages = async function (req, res) {
     try {
         const { product_id, imageName } = req.body
         const { product_images } = await Product.findById(product_id)
-        const list = product_images.filter(x=> x !== imageName)
+        const list = product_images.filter(x => x !== imageName)
         const filter = { _id: product_id };
         const update = { product_images_list: list, product_images: list };
         const result = await Product.findOneAndUpdate(filter, update);
@@ -468,27 +472,27 @@ exports.deleteImages = async function (req, res) {
 };
 
 
-const uploadPic = async ( files, store_id ) =>{
+const uploadPic = async (files, store_id) => {
     const containerClient = blobServiceClient.getContainerClient("assets");
     let imgNames = []
-    
-    if (Array.isArray(files)){
-        for(const file of files){
-            const fileName = store_id+ '_'+ 1 + '_' + Date.now() + '.jpg';
+
+    if (Array.isArray(files)) {
+        for (const file of files) {
+            const fileName = store_id + '_' + 1 + '_' + Date.now() + '.jpg';
             const blockBlobClient = containerClient.getBlockBlobClient(fileName);
             await blockBlobClient.upload(file.data, file.size);
-            imgNames.push(baseL+fileName)
+            imgNames.push(baseL + fileName)
         }
         return imgNames
     }
 
-    const fileName = store_id+ '_'+ 1 + '_' + Date.now() + '.jpg';
+    const fileName = store_id + '_' + 1 + '_' + Date.now() + '.jpg';
     const blockBlobClient = containerClient.getBlockBlobClient(fileName);
     await blockBlobClient.upload(files.data, files.size);
-    imgNames.push(baseL+fileName)
+    imgNames.push(baseL + fileName)
     return imgNames
 
-    
+
 }
 
 exports.updateStatus = async function (req, res) {
@@ -504,7 +508,6 @@ exports.updateStatus = async function (req, res) {
     } catch (error) {
         res.json({ status: 0, message: error.message });
     }
-
 };
 
 exports.updateSingle = async function (req, res) {
@@ -586,4 +589,28 @@ exports.myStore = async function (req, res) {
 
 };
 
+exports.updateFCMToken = async function (req, res) {
+    try {
+        const { token } = req.body
+        const { store_id } = req.user
+        const user = await Stores.findById(store_id)
+        const { store_notification_tokens } = user ? user : { }
+        let _tokens = store_notification_tokens ? store_notification_tokens : []
+        if( !_tokens.includes(token)){
+            _tokens.push(token)
+        }
+        const filter = { _id: store_id };
+        const update = { store_notification_tokens: _tokens };
+        const result = await Stores.findOneAndUpdate(filter, update);
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+
+exports.getFCMToken = async function (store_id) {
+    const {store_notification_tokens} = await Stores.findById(store_id)
+    return store_notification_tokens
+}
 

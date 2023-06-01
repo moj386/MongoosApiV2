@@ -13,6 +13,8 @@ const customerRoutes = require('./app/Routes/RouteCustomers');
 const masterRoutes = require('./app/Routes/RouteMasters');
 const storesRoutes = require('./app/Routes/RouteStores');
 const adminRoutes = require('./app/Routes/RouteAdmin');
+const notificationRoutes = require('./app/Routes/RouteNotification');
+
 
 var port = process.env.PORT || 5001;
 let app = express();
@@ -40,6 +42,8 @@ app.use('/customer', customerRoutes);
 app.use('/other', masterRoutes)
 app.use('/store', storesRoutes)
 app.use('/admin', adminRoutes)
+app.use('/notification', notificationRoutes)
+
 
 
 app.listen(port, () => {
