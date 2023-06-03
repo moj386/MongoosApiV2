@@ -19,7 +19,7 @@ var storesSchema = mongoose.Schema({
   store_image:  { type: String },
   store_delivery_type: { type: Number, required: true}, // 1 for store will deliver, 2 store will pay, 3 customer will pay
   store_delivery_fee: {  type: Number },
-  store_avg_delivery_minutes: {  type: Number },
+  store_avg_delivery_minutes: {  type: Number , default: 30},
   store_best_opt1: {  type: String },
   store_best_opt2: {  type: String },
   store_best_opt3: {  type: String },

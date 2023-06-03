@@ -55,7 +55,6 @@ const sendSMS = async (mobile, text) => {
 
 }
 
-//
 
 exports.smstest = async function (req, res) {
     try {
@@ -165,7 +164,7 @@ exports.getNearBuyStoresV2 = async function (req, res) {
                     includeLocs: "sstore_pin_location",
                     distanceField: "distance",
                     near: { type: "Point", coordinates: location },
-                    maxDistance: 108 * METERS_PER_MILE,
+                    maxDistance: 10 * METERS_PER_MILE,
                     spherical: true
                 }
             },
