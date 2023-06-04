@@ -18,6 +18,7 @@ const Address = CustomerMaster.CustomerAddress;
 const Orders = CustomerMaster.Orders;
 const axios = require('axios');
 
+const notificationController = require('../Controller/ControllerNotifications')
 
 
 //// CUSTOMER LOGIN
@@ -83,12 +84,15 @@ exports.otp_request = async function (req, res) {
 }
 
 const functionOTPSMS = async (mobile, customer_otp)=>{
+
     const text = `${customer_otp} is your ZeShop verification code.`
     const number = '971'+mobile.substr(-9);
     const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&password=${encodeURIComponent('N5cq}-2C')}&type=0&dlr=1&destination=${number}&source=ZeShop&message=${encodeURIComponent(text)}`
 
-    await axios.get(smsURL)
-
+    try{
+        await axios.get(smsURL)
+    }catch(e){}
+    
 }
 
 
@@ -396,18 +400,14 @@ exports.addOrder = async function (req, res) {
 
         const lastnumber = await Increment('orders')
 
-        let cartTotalPrice = 0;
+        let cartNetAmount = total (customer_cart_products);
+        let cartTotalPrice = cartNetAmount;
         let cartBeforeDiscountPrice = 0;
         let cartCouponPrice = 0;
-        let cartNetAmount = 0;
+       
         let cartDeliveryCharges = 0;
 
-
-        customer_cart_products.forEach(item => {
-            cartTotalPrice = + item.product_cart_amount;
-            cartBeforeDiscountPrice = + item.product_price_before_discount
-        });
-        cartNetAmount = (cartTotalPrice - cartCouponPrice).toFixed(2);
+        customer_cart_products.reduce((a, b) => +a + +b.price, 0);
 
         order._id = lastnumber;
         order.order_gross_amount = cartTotalPrice;
@@ -429,6 +429,10 @@ exports.addOrder = async function (req, res) {
 
         await retry(fnSaveOrder, numRetry).then(async data => {
             await retry(fnClearCart, numRetry)
+            
+            const body = `You have received a new order. Please prepare the order ASAP. Our rider will be there shortly!`
+            //await notificationController.single_notification('New Order', body, order.order_store_id)
+            
             res.json({ status: 1, message: 'Success', data });
         }).catch((error) => {
             res.json({ status: 0, message: error.message })
@@ -437,6 +441,16 @@ exports.addOrder = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
+function total(list) {
+    return list.reduce((acc, item) => {
+      const { product_cart_qty, product_price } = item
+      return acc + (product_cart_qty * product_price)
+  
+    }, 0)
+}
+
+
 exports.viewOrder = async function (req, res) {
     try {
         const { order_id } = req.body;
@@ -447,6 +461,7 @@ exports.viewOrder = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
 exports.viewOrderHome = async function (req, res) {
     try {
         const { customer_id } = req.user;

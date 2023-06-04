@@ -55,5 +55,9 @@ router.route('/admin/products').post(auth, storeController.adminProducts);
 
 router.route('/updateFCMToken').post(auth, storeController.updateFCMToken)
 
+router.route('/search').post(storeController.getSuggestionList)
+
+
+
 
 module.exports = router;

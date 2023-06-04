@@ -110,6 +110,8 @@ exports.outlook_single = async function (req, res) {
     }
 }
 
+
+
 exports.document_notification = async function (req, res) {
     const { doctype, docno, title, body, store_id } = req.body
     try {
@@ -131,5 +133,26 @@ exports.document_notification = async function (req, res) {
         res.json({ status: 1, message: 'Success!', data: 'Sent' });
     } catch (error) {
         res.json({ status: 0, message: error.message });
+    }
+}
+
+
+exports.single_notification = async function (title, body, store_id) {
+
+    try {
+        const fcmTokens = await storeController.getFCMToken(store_id)
+        await ze_admin.messaging().sendMulticast({
+            tokens: fcmTokens,
+            notification: { title, body },
+            android: {
+                priority: "high",
+                notification: {
+                    channelId: "sound_channel"
+                }
+            },
+            "data": { "DOCTYPE": '', "DOCNO": '' , "android_channel_id": "yourUniquePushId" },
+            "apns": { "payload": { "aps": { "content-available": 1, "sound": "ring.mp3" } } },
+        });
+    } catch (error) {
     }
 }

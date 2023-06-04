@@ -237,7 +237,7 @@ exports.getNearBuyStoresV2 = async function (req, res) {
 }
 
 exports.getSuggestionList = async function (req, res) {
-    const { long, latt } = req.body;
+    const { long, latt, term } = req.body;
     const METERS_PER_MILE = 1000;
     const currentHH = new Date().getHours();
     const currentMM = new Date().getMinutes();
@@ -245,61 +245,184 @@ exports.getSuggestionList = async function (req, res) {
     const location = [parseFloat(latt), parseFloat(long)]
 
     try {
-        const data = await Stores.aggregate([
+
+        const data = await Product.aggregate([
             {
-                $geoNear: {
-                    includeLocs: "sstore_pin_location",
-                    distanceField: "distance",
-                    near: { type: "Point", coordinates: location },
-                    maxDistance: 108 * METERS_PER_MILE,
-                    spherical: true
+                "$search": {
+                    "index": "autocomplete",
+                    "compound": {
+                        "must": [
+                            {
+                                "autocomplete": {
+                                    "query": `${term}`,
+                                    "path": "product_store_keywords",
+                                    "fuzzy": {
+                                        "maxEdits": 2,
+                                        "prefixLength": 3
+                                    }
+                                },
+                            },
+                            {
+                                "geoWithin": {
+                                    "circle": {
+                                        "center": {
+                                            "type": "Point",
+                                            "coordinates": location
+                                        },
+                                        "radius": 100 * METERS_PER_MILE
+                                    },
+                                    "path": "product_store_pin_location"
+                                }
+                            }
+                        ]
+                    }
                 }
             },
             {
-                $lookup: {
-                    from: "products",
-                    localField: "_id",
-                    foreignField: "product_store_id",
-                    as: "products"
-                }
-            },
-            {
-                $match: {
-                    "products.product_status": true,
-                    "products.product_available_fm": { $lte: currentNumber },
-                    "products.product_available_till": { $gte: currentNumber },
+            "$match": {
+                    "product_status": true,
+                    "product_available_fm": { $lte: currentNumber },
+                    "product_available_till": { $gte: currentNumber },
+
                 }
             },
             {
                 "$project": {
                     _id: 1,
-                    store_name: 1,
-                    store_flat_discount: 1,
-                    store_state_docno: 1,
-                    store_area_docno: 1,
-                    store_pin_location: 1,
-                    store_address: 1,
-                    store_mobile: 1,
-                    store_email: 1,
-                    store_phone: 1,
-                    store_rating: 1,
-                    store_total_reviews: 1,
-                    store_image: 1,
-                    store_delivery_fee: 1,
-                    store_avg_delivery_minutes: 1,
-                    store_best_opt1: 1,
-                    store_best_opt2: 1,
-                    store_best_opt3: 1,
-                    store_best_opt4: 1,
+                    product_store_id: 1,
+                    product_title: 1,
+                    product_images: 1,
+                    product_store_keywords: 1,
+                    product_keywords: 1
+
                 }
             }
+        ])
 
+        const data2 = await Product.aggregate([
+            {
+                "$search": {
+                    "index": "autocomplete",
+                    "compound": {
+                        "must": [
+                            {
+                                "autocomplete": {
+                                    "query": `${term}`,
+                                    "path": "product_keywords",
+                                    "fuzzy": {
+                                        "maxEdits": 2,
+                                        "prefixLength": 3
+                                    }
+                                },
+                            },
+                            {
+                                "geoWithin": {
+                                    "circle": {
+                                        "center": {
+                                            "type": "Point",
+                                            "coordinates": location
+                                        },
+                                        "radius": 100 * METERS_PER_MILE
+                                    },
+                                    "path": "product_store_pin_location"
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+            "$match": {
+                    "product_status": true,
+                    "product_available_fm": { $lte: currentNumber },
+                    "product_available_till": { $gte: currentNumber },
+
+                }
+            },
+            {
+                "$project": {
+                    _id: 1,
+                    product_store_id: 1,
+                    product_title: 1,
+                    product_images: 1,
+                    product_store_keywords: 1,
+                    product_keywords: 1
+
+                }
+            }
         ])
         res.json({ status: 1, message: 'Success', data: data });
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }
 }
+
+// exports.getSuggestionList = async function (req, res) {
+//     const { long, latt, term } = req.body;
+//     const METERS_PER_MILE = 1000;
+//     const currentHH = new Date().getHours();
+//     const currentMM = new Date().getMinutes();
+//     const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
+//     const location = [parseFloat(latt), parseFloat(long)]
+
+//     try {
+//         const data = await Product.aggregate([
+//             // {
+//             //     $geoNear: {
+//             //         includeLocs: "product_store_pin_location",
+//             //         distanceField: "distance",
+//             //         near: { type: "Point", coordinates: location },
+//             //         maxDistance: 100 * METERS_PER_MILE,
+//             //         query: { category: "Parks" },
+//             //         spherical: true
+//             //     }
+//             // },
+//             {
+//                 $search: {
+//                   index: "search_index",
+//                   text: {
+//                     query: term,
+//                     path: {
+//                       wildcard: "*"
+//                     }
+//                   }
+//                 },
+//                 "should": {
+//                     "near": {
+//                       "origin": {
+//                         "type": "Point",
+//                         "coordinates": location
+//                       },
+//                       "pivot": 100 * METERS_PER_MILE,
+//                       "path": "product_store_pin_location"
+//                     }
+//                   }
+//               },
+//             {
+//                 $match: {
+//                     "product_status": true,
+//                     "product_available_fm": { $lte: currentNumber },
+//                     "product_available_till": { $gte: currentNumber },
+
+//                 }
+//             },
+//             {
+//                 "$project": {
+//                     _id: 1,
+//                     product_store_id: 1,
+//                     product_title: 1,
+//                     product_images: 1
+
+//                 }
+//             }
+
+//         ])
+//         res.json({ status: 1, message: 'Success', data: data });
+//     } catch (e) {
+//         res.json({ status: 0, message: e.message });
+//     }
+// }
+
 
 
 exports.myproducts = async function (req, res) {
@@ -593,9 +716,9 @@ exports.updateFCMToken = async function (req, res) {
         const { token } = req.body
         const { store_id } = req.user
         const user = await Stores.findById(store_id)
-        const { store_notification_tokens } = user ? user : { }
+        const { store_notification_tokens } = user ? user : {}
         let _tokens = store_notification_tokens ? store_notification_tokens : []
-        if( !_tokens.includes(token)){
+        if (!_tokens.includes(token)) {
             _tokens.push(token)
         }
         const filter = { _id: store_id };
@@ -609,7 +732,7 @@ exports.updateFCMToken = async function (req, res) {
 };
 
 exports.getFCMToken = async function (store_id) {
-    const {store_notification_tokens} = await Stores.findById(store_id)
+    const { store_notification_tokens } = await Stores.findById(store_id)
     return store_notification_tokens
 }
 
