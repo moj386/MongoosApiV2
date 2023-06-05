@@ -25,6 +25,7 @@ exports.register = async function (req, res) {
         store._id = lastnumber
         store.store_password = await bcrypt.hash(password, 10);
         store.store_email = store.store_email.toLowerCase();
+        store.store_keywords = product_store_keywords
         const customer = await store.save();
 
         const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
@@ -293,7 +294,7 @@ exports.getSuggestionList = async function (req, res) {
                     product_title: 1,
                     product_images: 1,
                     product_store_keywords: 1,
-                    product_keywords: 1
+                    product_keywords: 1 
 
                 }
             }
@@ -338,20 +339,9 @@ exports.getSuggestionList = async function (req, res) {
                     "product_available_till": { $gte: currentNumber },
 
                 }
-            },
-            {
-                "$project": {
-                    _id: 1,
-                    product_store_id: 1,
-                    product_title: 1,
-                    product_images: 1,
-                    product_store_keywords: 1,
-                    product_keywords: 1
-
-                }
             }
         ])
-        res.json({ status: 1, message: 'Success', data: data });
+        res.json({ status: 1, message: 'Success', data: data , data2});
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }
