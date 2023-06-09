@@ -414,6 +414,21 @@ exports.getSuggestionList = async function (req, res) {
 // }
 
 
+exports.updateKeywords = async function (req, res) {
+   
+    const store = await Stores.find({})
+
+    store.forEach( async (item)=>{
+        const { store_name , _id } = item
+        const filter = { product_store_id: _id };
+        const update = { product_store_keywords: store_name};
+       const tt=  await Product.findOneAndUpdate(filter, update);
+
+       console.log(tt);
+    })
+    return res.json({ status: 1, message: 'Success' });
+}
+
 
 exports.myproducts = async function (req, res) {
     try {

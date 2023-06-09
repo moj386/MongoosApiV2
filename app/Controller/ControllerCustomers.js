@@ -4,7 +4,7 @@ Products = require('../Model/ModelProducts');
 Stores = require('../Model/ModelStores');
 
 const Stripe = require("stripe");
-const stripe = Stripe('sk_test_51JyCUYBT956xZwz7nei3IIxmGn8dWakQ4tNhI6zAaJ6HoNYrA38lm9KlDtZCiKWLCE1sQaA1afVtqPPvVDbuwY8G00two4ZMaZ');
+const stripe = Stripe('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');
 
 const jwtToken = require('../../utils/tokenHandler');
 

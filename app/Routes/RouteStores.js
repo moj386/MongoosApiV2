@@ -58,6 +58,6 @@ router.route('/updateFCMToken').post(auth, storeController.updateFCMToken)
 router.route('/search').post(storeController.getSuggestionList)
 
 
-
+router.route('/updateKeyword').get(storeController.updateKeywords)
 
 module.exports = router;
