@@ -4,7 +4,10 @@ Products = require('../Model/ModelProducts');
 Stores = require('../Model/ModelStores');
 
 const Stripe = require("stripe");
-const stripe = Stripe('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');
+
+const __id = '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'
+
+const stripe = Stripe(__id);
 
 const jwtToken = require('../../utils/tokenHandler');
 
@@ -31,19 +34,19 @@ exports.login_register = async function (req, res) {
         message: 'This is a test message'
     }
 
-    try{
-        const data  = await smsglobal.sms.send(payload)
+    try {
+        const data = await smsglobal.sms.send(payload)
         res.json({ status: 1, message: data });
-    }catch(e){
+    } catch (e) {
         res.json({ status: 1, message: e });
     }
-   
-    
+
+
     // smsglobal.sms.send(payload, function (error, response) {
     //     return res.json({ status: 1, message: error, response });
     // });
 
-   
+
 
 }
 
@@ -83,16 +86,18 @@ exports.otp_request = async function (req, res) {
     }
 }
 
-const functionOTPSMS = async (mobile, customer_otp)=>{
+const functionOTPSMS = async (mobile, customer_otp) => {
 
     const text = `${customer_otp} is your ZeShop verification code.`
-    const number = '971'+mobile.substr(-9);
+    const number = '971' + mobile.substr(-9);
     const smsURL = `https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&password=${encodeURIComponent('N5cq}-2C')}&type=0&dlr=1&destination=${number}&source=ZeShop&message=${encodeURIComponent(text)}`
 
-    try{
+    try {
         await axios.get(smsURL)
-    }catch(e){}
-    
+    } catch (e) { 
+        console.log(e);
+    }
+
 }
 
 
@@ -215,12 +220,12 @@ exports.viewAddress_single = async function (req, res) {
         const __customer = await Customer.findById({ _id: customer_id });
         let { customer_addresses } = __customer;
         const single = customer_addresses.filter(x => x.defaultAddress === true)[0]
-        
-        if(!single){
+
+        if (!single) {
             const _single = customer_addresses[0]
             return res.json({ status: 1, message: 'Success', data: _single });
         }
-    
+
         return res.json({ status: 1, message: 'Success', data: single });
 
     } catch (err) {
@@ -244,7 +249,7 @@ exports.deleteAddress = async function (req, res) {
             filter[0].defaultAddress = __defaultAddress
         }
 
-        const ret = filter.find(x=> x.defaultAddress === true)
+        const ret = filter.find(x => x.defaultAddress === true)
 
         await Customer.updateOne({ _id: customer_id }, { "$set": { customer_addresses: filter } })
 
@@ -283,17 +288,17 @@ exports.setDefaultAddress = async function (req, res) {
         const { address_id } = req.body;
         let __customer = await Customer.findById(customer_id);
         const { customer_addresses } = __customer;
-        
-        const ook = customer_addresses.reduce((acc, item)=>{
+
+        const ook = customer_addresses.reduce((acc, item) => {
             const { _id } = item
-            if( _id.toHexString() === address_id ){
-                item.defaultAddress= true
-            }else{
-                item.defaultAddress= false
+            if (_id.toHexString() === address_id) {
+                item.defaultAddress = true
+            } else {
+                item.defaultAddress = false
             }
             acc.push(item)
             return acc
-        },[])
+        }, [])
         __customer.customer_addresses = ook
         const result = await __customer.save()
         return res.json({ status: 1, message: 'Success', data: result });
@@ -312,14 +317,16 @@ exports.addCart = async function (req, res) {
         const { customer_id } = req.user;
         const product = new Products(req.body)
         const __customer = await Customer.findById(customer_id);
-        const { customer_cart_products } = __customer;
+        const { customer_cart } = __customer;
+        const customer_cart_products = customer_cart.products;
+
         let removeOtherStores = customer_cart_products.filter(x => String(x.product_store_id) === String(product.product_store_id))
         const quantity = product.product_cart_qty;
         removeOtherStores = removeOtherStores.filter(x => x._id !== product._id)
         if (quantity > 0)
             removeOtherStores.push(product)
 
-        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_cart_products: removeOtherStores } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart.products" : removeOtherStores } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
@@ -335,7 +342,8 @@ exports.viewCart = async function (req, res) {
     try {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
-        const { customer_cart_products } = __customer;
+        const { customer_cart } = __customer;
+        const customer_cart_products  = customer_cart.products
 
         const total_amount = customer_cart_products.reduce((acc, item) => {
             const { product_cart_qty, product_price } = item
@@ -346,19 +354,26 @@ exports.viewCart = async function (req, res) {
         const { product_store_id } = __single ? __single : {}
 
         const store = await Stores.findById(product_store_id);
-        const { store_delivery_fee, store_latitude, store_longitude, store_name } = store ? store : {}
+        const { store_delivery_fee, store_latitude, store_longitude, store_name, store_pin_location } = store ? store : {}
+
         const __products = customer_cart_products.sort((a, b) => new Date(b.product_created_ts) - new Date(a.product_created_ts));
+
+        const service_charges = 1 + (total_amount * 0.03)
+        const grand_total = (total_amount + service_charges)
+
         const data = {
             productsCart: __products,
             cartAmount: total_amount,
-            grand_total: total_amount,
             item_total: total_amount,
+            grand_total,
+            service_charges,
             vat_total: total_amount * 0.05,
             store_delivery_fee,
             store_latitude,
             store_longitude,
             store_name,
-            store_id: product_store_id
+            store_id: product_store_id,
+            store_pin_location
         }
 
         return res.json({ status: 1, message: 'Success', data: data });
@@ -374,7 +389,7 @@ exports.deleteCart = async function (req, res) {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
 
-        Customer.update({ _id: __customer._id }, { "$set": { customer_cart_products: [] } }, function (err) {
+        Customer.update({ _id: __customer._id }, { "$set": { "customer_cart.products": [] } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
@@ -393,46 +408,47 @@ exports.addOrder = async function (req, res) {
         const { customer_id } = req.user;
         const order = new Orders(req.body)
         const __customer = await Customer.findById(customer_id);
-        const { customer_cart_products } = __customer;
+        const { customer_cart } = __customer;
+        const 
+        { 
+            products,
+            gross_amount,
+            discount_amount,
+            delivery_fee,
+            vat_amount,
+            service_charges,
+            net_amount
+        
+        } = customer_cart ? customer_cart : {}
 
         const __store = await Stores.findById(order.order_store_id);
-
-
         const lastnumber = await Increment('orders')
 
-        let cartNetAmount = total (customer_cart_products);
-        let cartTotalPrice = cartNetAmount;
-        let cartBeforeDiscountPrice = 0;
-        let cartCouponPrice = 0;
-       
-        let cartDeliveryCharges = 0;
-
-        customer_cart_products.reduce((a, b) => +a + +b.price, 0);
-
         order._id = lastnumber;
-        order.order_gross_amount = cartTotalPrice;
-        order.order_discount_amount = (cartBeforeDiscountPrice - cartTotalPrice).toFixed(2);
-        order.order_delivery_charges = cartDeliveryCharges;
-        order.order_service_charges = 0;
-        order.order_net_amount = cartNetAmount;
+        order.order_gross_amount = gross_amount;
+        order.order_discount_amount = discount_amount;
+        order.order_delivery_charges = delivery_fee;
+        order.order_service_charges = service_charges;
+        order.order_net_amount = net_amount;
+        order.order_vat_amount = vat_amount;
+
 
         order.order_customer_id = customer_id;
         order.order_customer_email = __customer.customer_email;
         order.order_customer_mobile = __customer.customer_mobile;
-        order.order_products = customer_cart_products
-        order.order_store_address = __store
-
+        order.order_products = products;
+        order.order_store_address = __store;
 
         const fnSaveOrder = () => order.save();
-        const fnClearCart = () => Customer.updateOne({ _id: customer_id }, { "$set": { customer_cart_products: [] } });
+        const fnClearCart = () => Customer.updateOne({ _id: customer_id }, { "$set": { customer_cart: [] } });
         const numRetry = { retries: 3 }
 
         await retry(fnSaveOrder, numRetry).then(async data => {
             await retry(fnClearCart, numRetry)
-            
+
             const body = `You have received a new order. Please prepare the order ASAP. Our rider will be there shortly!`
-            //await notificationController.single_notification('New Order', body, order.order_store_id)
-            
+            await notificationController.single_notification('New Order', body, order.order_store_id)
+
             res.json({ status: 1, message: 'Success', data });
         }).catch((error) => {
             res.json({ status: 0, message: error.message })
@@ -444,9 +460,9 @@ exports.addOrder = async function (req, res) {
 
 function total(list) {
     return list.reduce((acc, item) => {
-      const { product_cart_qty, product_price } = item
-      return acc + (product_cart_qty * product_price)
-  
+        const { product_cart_qty, product_price } = item
+        return acc + (product_cart_qty * product_price)
+
     }, 0)
 }
 
@@ -469,7 +485,7 @@ exports.viewOrderHome = async function (req, res) {
             .sort({ 'order_datetime': -1 })
             .limit(25)
 
-        let store_list = []    
+        let store_list = []
         order.map(item => {
             const { order_store_address } = item
             store_list.push(order_store_address)
@@ -535,6 +551,8 @@ exports.viewOrders = async function (req, res) {
     try {
         const { customer_id } = req.user;
         const orders = await Orders.find({ order_customer_id: customer_id })
+        .sort({ 'order_datetime': -1 })
+        .limit(50)
         return res.json({ status: 1, message: 'Success', data: orders });
 
     } catch (err) {
@@ -550,7 +568,7 @@ exports.repeatOrder = async function (req, res) {
 
         const __customer = await Customer.findById(customer_id);
 
-        Customer.updateOne({ _id: __customer._id }, { "$set": { customer_cart_products: order_products } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": {  "customer_cart.products": order_products } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
@@ -570,7 +588,16 @@ exports.makePayment = async function (req, res) {
     try {
 
         const { customer_id } = req.user
-        const { canSaveCard, order_net_amount } = req.body
+        const { 
+            canSaveCard,
+            order_net_amount,
+            item_total,
+            store_delivery_fee,
+            vat_total,
+            grand_total,
+            service_charges
+        } = req.body
+
         let ephemeralKey = {}
 
         const customer_data = await Customer.findById(customer_id)
@@ -579,7 +606,6 @@ exports.makePayment = async function (req, res) {
         if (!customer_pay_token && canSaveCard) {
             const customer = await stripe.customers.create();
             customer_pay_token = customer.id
-            await Customer.updateOne({ _id: customer_id }, { customer_pay_token })
         }
         if (canSaveCard) {
             ephemeralKey = await stripe.ephemeralKeys.create(
@@ -588,6 +614,15 @@ exports.makePayment = async function (req, res) {
             )
         }
 
+        await Customer.updateOne({ _id: customer_id }, { 
+            customer_pay_token,
+            gross_amount: item_total,
+            delivery_fee: store_delivery_fee,
+            vat_amount: vat_total,
+            service_charges: service_charges,
+            net_amount: grand_total
+        })
+        
         let pay_intent = {
             amount: Math.round(order_net_amount * 100),
             currency: "AED",

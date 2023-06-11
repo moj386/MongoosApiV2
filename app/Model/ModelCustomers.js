@@ -17,7 +17,14 @@ const userSchema = new mongoose.Schema({
     customer_status: { type: Boolean, default: true, select: false },
     customer_created: { type: Date, default: Date.now, select: false },
     customer_addresses:[AddressSchema],
-    customer_cart_products: [ProductSchema],
+    customer_cart: {
+      products: [ProductSchema],
+      gross_amount: Number,
+      delivery_fee: Number,
+      vat_amount: Number,
+      service_charges: Number,
+      net_amount: Number
+    },
     customer_wishlist_restaurant:[String],
     customer_wishlist_products:[String],
     customer_otp: { type: Number, select: false },
@@ -32,6 +39,7 @@ const orderSchema = new mongoose.Schema({
   order_customer_id:  { type: String, required: true },
   order_datetime:{ type: Date, default: Date.now },
   order_gross_amount: Number,
+  order_vat_amount: Number,
   order_discount_amount: Number,
   order_delivery_charges: Number,
   order_net_amount: Number,
@@ -39,10 +47,9 @@ const orderSchema = new mongoose.Schema({
   order_customer_mobile: String ,
   order_customer_comments: String,
   order_cooking_instructions: String,
+
   order_staus: Number,
-
   order_payment_status: Number,
-
   order_payment_collection_status: Number,
   order_payment_collected_amount: Number,
   order_delivery_status: String,
@@ -54,11 +61,8 @@ const orderSchema = new mongoose.Schema({
   order_deliver_ts: Date,
   order_store_accept_status: { type: Number, default: 0 },
   order_store_accept_ts: Date,
-
   order_store_payment_status: Boolean,
   order_store_paid_amount: Number,
-
-
   order_customer_rating: Number,
   order_customer_remarks: String,
   order_store_rating: Number,
