@@ -322,7 +322,8 @@ exports.addCart = async function (req, res) {
         removeOtherStores = removeOtherStores.filter(x => x._id !== product._id)
         if (quantity > 0)
             removeOtherStores.push(product)
-        Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart.$[].products" : removeOtherStores } }, function (err) {
+        
+            Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart" : {products: removeOtherStores} } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
@@ -385,7 +386,7 @@ exports.deleteCart = async function (req, res) {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
 
-        Customer.update({ _id: __customer._id }, { "$set": { "customer_cart.$[].products": [] } }, function (err) {
+        Customer.update({ _id: __customer._id }, { "$set": { "customer_cart": {products: []} } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
@@ -436,7 +437,7 @@ exports.addOrder = async function (req, res) {
         order.order_store_address = __store;
 
         const fnSaveOrder = () => order.save();
-        const fnClearCart = () => Customer.updateOne({ _id: customer_id }, { "$set": { customer_cart: [] } });
+        const fnClearCart = () => Customer.updateOne({ _id: customer_id }, { "$set": { customer_cart: {} } });
         const numRetry = { retries: 3 }
 
         await retry(fnSaveOrder, numRetry).then(async data => {
@@ -564,7 +565,7 @@ exports.repeatOrder = async function (req, res) {
 
         const __customer = await Customer.findById(customer_id);
 
-        Customer.updateOne({ _id: __customer._id }, { "$set": {  "customer_cart.$[].products": order_products } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": {  "customer_cart": {products: order_products} } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
