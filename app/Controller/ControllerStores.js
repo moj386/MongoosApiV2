@@ -423,8 +423,6 @@ exports.updateKeywords = async function (req, res) {
         const filter = { product_store_id: _id };
         const update = { product_store_keywords: store_name};
        const tt=  await Product.findOneAndUpdate(filter, update);
-
-       console.log(tt);
     })
     return res.json({ status: 1, message: 'Success' });
 }
@@ -574,7 +572,6 @@ exports.UpdateImages = async function (req, res) {
         return res.json({ status: 1, message: 'Success', data: result });
 
     } catch (error) {
-        console.log(error);
         res.json({ status: 0, message: error.message });
     }
 

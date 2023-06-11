@@ -7,8 +7,6 @@ const fetch = async (tableId) => {
    try{
     var ret = await Counter.findOneAndUpdate({ _id: tableId },{ $inc: { seq: 1 }}, {new: true});
     
-    console.log(tableId, ret);
-    
     if(ret)
     return ret.seq;
     return 100

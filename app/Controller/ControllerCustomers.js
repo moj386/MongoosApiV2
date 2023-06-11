@@ -130,8 +130,6 @@ exports.login = async function (req, res) {
 exports.loginstatus = async function (req, res) {
 
     const { user_id } = req.user
-    console.log(user_id);
-
     res.status(200).send("Welcome 🙌 ");
 }
 
@@ -319,14 +317,12 @@ exports.addCart = async function (req, res) {
         const __customer = await Customer.findById(customer_id);
         const { customer_cart } = __customer;
         const customer_cart_products = customer_cart.products;
-
         let removeOtherStores = customer_cart_products.filter(x => String(x.product_store_id) === String(product.product_store_id))
         const quantity = product.product_cart_qty;
         removeOtherStores = removeOtherStores.filter(x => x._id !== product._id)
         if (quantity > 0)
             removeOtherStores.push(product)
-
-        Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart.products" : removeOtherStores } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart.$[].products" : removeOtherStores } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
@@ -389,7 +385,7 @@ exports.deleteCart = async function (req, res) {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
 
-        Customer.update({ _id: __customer._id }, { "$set": { "customer_cart.products": [] } }, function (err) {
+        Customer.update({ _id: __customer._id }, { "$set": { "customer_cart.$[].products": [] } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
@@ -568,7 +564,7 @@ exports.repeatOrder = async function (req, res) {
 
         const __customer = await Customer.findById(customer_id);
 
-        Customer.updateOne({ _id: __customer._id }, { "$set": {  "customer_cart.products": order_products } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": {  "customer_cart.$[].products": order_products } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
