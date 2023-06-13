@@ -74,9 +74,6 @@ const orderSchema = new mongoose.Schema({
 });
 
 
-
-
-
 orderSchema.index({ customer_id: "1"});  
 
 exports.Customer = mongoose.model("customers", userSchema);

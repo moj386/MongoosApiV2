@@ -55,7 +55,9 @@ router.route('/admin/products').post(auth, storeController.adminProducts);
 
 router.route('/updateFCMToken').post(auth, storeController.updateFCMToken)
 
-router.route('/search').post(storeController.getSuggestionList)
+router.route('/search/suggestion').post(storeController.getSuggestionList)
+router.route('/search/stores').post(storeController.getSearchedStores)
+router.route('/search/products').post(storeController.getSearchedProducts)
 
 
 router.route('/updateKeyword').get(storeController.updateKeywords)

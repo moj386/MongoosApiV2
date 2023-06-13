@@ -237,6 +237,10 @@ exports.getNearBuyStoresV2 = async function (req, res) {
     }
 }
 
+
+////// ------ SEARCH
+
+
 exports.getSuggestionList = async function (req, res) {
     const { long, latt, term } = req.body;
     const METERS_PER_MILE = 1000;
@@ -247,7 +251,7 @@ exports.getSuggestionList = async function (req, res) {
 
     try {
 
-        const data = await Product.aggregate([
+        const stores = await Product.aggregate([
             {
                 "$search": {
                     "index": "autocomplete",
@@ -275,32 +279,30 @@ exports.getSuggestionList = async function (req, res) {
                                     "path": "product_store_pin_location"
                                 }
                             }
+
                         ]
                     }
                 }
             },
             {
-            "$match": {
+                $match: {
                     "product_status": true,
                     "product_available_fm": { $lte: currentNumber },
                     "product_available_till": { $gte: currentNumber },
 
                 }
             },
+            { "$group": { _id: "$product_store_keywords", count: { $sum: 1 } } },
+            { $limit: 10 },
             {
                 "$project": {
-                    _id: 1,
-                    product_store_id: 1,
-                    product_title: 1,
-                    product_images: 1,
                     product_store_keywords: 1,
-                    product_keywords: 1 
+                    "TYPE": "STORE"
 
                 }
             }
         ])
-
-        const data2 = await Product.aggregate([
+        const products = await Product.aggregate([
             {
                 "$search": {
                     "index": "autocomplete",
@@ -312,6 +314,74 @@ exports.getSuggestionList = async function (req, res) {
                                     "path": "product_keywords",
                                     "fuzzy": {
                                         "maxEdits": 2,
+                                        "prefixLength": 2
+                                    }
+                                },
+                            },
+                            {
+                                "geoWithin": {
+                                    "circle": {
+                                        "center": {
+                                            "type": "Point",
+                                            "coordinates": location
+                                        },
+                                        "radius": 100 * METERS_PER_MILE
+                                    },
+                                    "path": "product_store_pin_location"
+                                }
+                            },
+
+                        ]
+                    },
+                }
+            },
+            {
+                $match: {
+                    "product_status": true,
+                    "product_available_fm": { $lte: currentNumber },
+                    "product_available_till": { $gte: currentNumber },
+
+                }
+            },
+            { "$group": { _id: "$product_title", count: { $sum: 1 } } },
+            { $limit: 10 },
+            {
+                "$project": {
+                    product_title: 1,
+                    "TYPE": "PRODUCT"
+
+                }
+            }
+        ])
+
+        const data = stores.concat(products)
+
+        res.json({ status: 1, message: 'Success', data: data });
+    } catch (e) {
+        res.json({ status: 0, message: e.message });
+    }
+}
+exports.getSearchedStores = async function (req, res) {
+    const { long, latt, term } = req.body;
+    const METERS_PER_MILE = 1000;
+    const currentHH = new Date().getHours();
+    const currentMM = new Date().getMinutes();
+    const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
+    const location = [parseFloat(latt), parseFloat(long)]
+
+    try {
+        const data = await Product.aggregate([
+            {
+                "$search": {
+                    "index": "autocomplete",
+                    "compound": {
+                        "must": [
+                            {
+                                "autocomplete": {
+                                    "query": `${term}`,
+                                    "path": "product_store_keywords",
+                                    "fuzzy": {
+                                        "maxEdits": 1,
                                         "prefixLength": 3
                                     }
                                 },
@@ -328,90 +398,103 @@ exports.getSuggestionList = async function (req, res) {
                                     "path": "product_store_pin_location"
                                 }
                             }
+
                         ]
                     }
                 }
             },
             {
-            "$match": {
+                $match: {
                     "product_status": true,
                     "product_available_fm": { $lte: currentNumber },
                     "product_available_till": { $gte: currentNumber },
 
                 }
-            }
+            },
+            {
+                $lookup: {
+                    from: "stores",
+                    localField: "product_store_id",
+                    foreignField: "_id",
+                    as: "stores"
+                }
+            },
+            {
+                $group: { _id: "$stores",  count: { $sum: 1 } }
+            } 
         ])
-        res.json({ status: 1, message: 'Success', data: data , data2});
+
+        res.json({ status: 1, message: 'Success', data: data });
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }
 }
+exports.getSearchedProducts = async function (req, res) {
+    const { long, latt, term } = req.body;
+    const METERS_PER_MILE = 1000;
+    const currentHH = new Date().getHours();
+    const currentMM = new Date().getMinutes();
+    const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
+    const location = [parseFloat(latt), parseFloat(long)]
 
-// exports.getSuggestionList = async function (req, res) {
-//     const { long, latt, term } = req.body;
-//     const METERS_PER_MILE = 1000;
-//     const currentHH = new Date().getHours();
-//     const currentMM = new Date().getMinutes();
-//     const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
-//     const location = [parseFloat(latt), parseFloat(long)]
+    try {
 
-//     try {
-//         const data = await Product.aggregate([
-//             // {
-//             //     $geoNear: {
-//             //         includeLocs: "product_store_pin_location",
-//             //         distanceField: "distance",
-//             //         near: { type: "Point", coordinates: location },
-//             //         maxDistance: 100 * METERS_PER_MILE,
-//             //         query: { category: "Parks" },
-//             //         spherical: true
-//             //     }
-//             // },
-//             {
-//                 $search: {
-//                   index: "search_index",
-//                   text: {
-//                     query: term,
-//                     path: {
-//                       wildcard: "*"
-//                     }
-//                   }
-//                 },
-//                 "should": {
-//                     "near": {
-//                       "origin": {
-//                         "type": "Point",
-//                         "coordinates": location
-//                       },
-//                       "pivot": 100 * METERS_PER_MILE,
-//                       "path": "product_store_pin_location"
-//                     }
-//                   }
-//               },
-//             {
-//                 $match: {
-//                     "product_status": true,
-//                     "product_available_fm": { $lte: currentNumber },
-//                     "product_available_till": { $gte: currentNumber },
+        const data = await Stores.aggregate([
+            {
+                $lookup:
+                {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "product_store_id",
+                    as: "products",
+                    "pipeline": [{
+                        "$search": {
+                            "index": "autocomplete",
+                            "compound": {
+                                "must": [
+                                    {
+                                        "autocomplete": {
+                                            "query": `${term}`,
+                                            "path": "product_keywords",
+                                            "fuzzy": {
+                                                "maxEdits": 1,
+                                                "prefixLength": 3
+                                            }
+                                        },
+                                    },
+                                    {
+                                        "geoWithin": {
+                                            "circle": {
+                                                "center": {
+                                                    "type": "Point",
+                                                    "coordinates": location
+                                                },
+                                                "radius": 100 * METERS_PER_MILE
+                                            },
+                                            "path": "product_store_pin_location"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }]
+                }
+            },
+            {
+                $match: {
+                    "products.product_status": true,
+                    "products.product_available_fm": { $lte: currentNumber },
+                    "products.product_available_till": { $gte: currentNumber },
 
-//                 }
-//             },
-//             {
-//                 "$project": {
-//                     _id: 1,
-//                     product_store_id: 1,
-//                     product_title: 1,
-//                     product_images: 1
-
-//                 }
-//             }
-
-//         ])
-//         res.json({ status: 1, message: 'Success', data: data });
-//     } catch (e) {
-//         res.json({ status: 0, message: e.message });
-//     }
-// }
+                }
+            },
+        ])
+        res.json({ status: 1, message: 'Success', data: data });
+    } catch (e) {
+        res.json({ status: 0, message: e.message });
+    }
+}
+////// ------ END SEARCH
 
 
 exports.updateKeywords = async function (req, res) {
@@ -426,7 +509,6 @@ exports.updateKeywords = async function (req, res) {
     })
     return res.json({ status: 1, message: 'Success' });
 }
-
 
 exports.myproducts = async function (req, res) {
     try {
@@ -594,7 +676,6 @@ exports.deleteImages = async function (req, res) {
     }
 
 };
-
 
 const uploadPic = async (files, store_id) => {
     const containerClient = blobServiceClient.getContainerClient("assets");
