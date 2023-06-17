@@ -1,21 +1,24 @@
 var admin = require("firebase-admin");
 
 var ze_account = require("../../assets/ze_admin.json");
+var ze_account2 = require("../../assets/ze_admin2.json");
+
 var storeController = require('../Controller/ControllerStores');
 var adminController = require('../Controller/ControllerAdmin');
 
 
-
 var ze_admin = admin.initializeApp({
-    credential: admin.credential.cert(ze_account),
-    databaseURL: "https://onlinestore-7d8f2-default-rtdb.firebaseio.com"
+    credential: admin.credential.cert(ze_account)
 });
 
+var ze_admin2 = admin.initializeApp({
+    credential: admin.credential.cert(ze_account2)
+},'ZeAdmin');
 
 exports.single = async function (req, res) {
     try {
-        await ze_admin.messaging().sendMulticast({
-            tokens: ['dSgDwcoPckQVpmh1SCAW2h:APA91bGQ4FJHdrfyb7aOiaSN3H22eYkopvQdVHEhQpI8CDfSRufasxtMEW7j4lnE9bUS7jx-BP07MCJCS1vf5zbPDoq2jIJG-mlm3N1SCDD0_yUhZ7d6DRcGRWhUYoZIkr0PX5TwaQ7P'],
+        await ze_admin2.messaging().sendMulticast({
+            tokens: ['f3IKWv5EdkN6pldHhw7vRf:APA91bEZmPNM5JnhUKDjsRDI2s1wkzq7KGYbxP5r05gdwTiu366UbCaTDpEn29jVZOdjdNBZ3U9gR96_zqTXk_J4-zdF7ePKzV5__Yn_bESbVNgBeCkgNLegtyGtHgKs9ZXSFKMSVLst'],
             "notification": {
                 "title": 'Kibsons',
                 "body": 'Kibsons new arrivals'
@@ -145,10 +148,10 @@ exports.single_notification = async function (title, body, store_id) {
     try {
         const fcmTokens = await storeController.getFCMToken(store_id)
         const fcmTokens2 = await adminController.getFCMToken(store_id)
-        const ______token = fcmTokens.concat(fcmTokens2)
+
 
         await ze_admin.messaging().sendMulticast({
-            tokens: ______token,
+            tokens: fcmTokens,
             notification: { title, body },
             android: {
                 priority: "high",
@@ -159,6 +162,22 @@ exports.single_notification = async function (title, body, store_id) {
             "data": { "DOCTYPE": '', "DOCNO": '' , "android_channel_id": "yourUniquePushId" },
             "apns": { "payload": { "aps": { "content-available": 1, "sound": "ring.mp3" } } },
         });
+
+        await ze_admin2.messaging().sendMulticast({
+            tokens: fcmTokens2,
+            notification: { title, body },
+            android: {
+                priority: "high",
+                notification: {
+                    channelId: "sound_channel"
+                }
+            },
+            "data": { "DOCTYPE": '', "DOCNO": '' , "android_channel_id": "yourUniquePushId" },
+            "apns": { "payload": { "aps": { "content-available": 1, "sound": "ring.mp3" } } },
+        });
+
+
+
     } catch (error) {
     }
 }
