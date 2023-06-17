@@ -50,3 +50,31 @@ exports.viewPendingOrders = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
+
+
+exports.updateFCMToken = async function (req, res) {
+    try {
+        const { token } = req.body
+        const { store_id } = req.user
+        const user = await Admin.findById(store_id)
+        const { notification_tokens } = user ? user : {}
+        let _tokens = notification_tokens ? notification_tokens : []
+        if (!_tokens.includes(token)) {
+            _tokens.push(token)
+        }
+        const filter = { _id: store_id };
+        const update = { notification_tokens: _tokens };
+
+        const result = await Admin.findOneAndUpdate(filter, update);
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+
+exports.getFCMToken = async function (store_id) {
+    const { notification_tokens } = await Admin.findById(store_id)
+    return notification_tokens
+}

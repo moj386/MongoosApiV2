@@ -2,6 +2,9 @@ var admin = require("firebase-admin");
 
 var ze_account = require("../../assets/ze_admin.json");
 var storeController = require('../Controller/ControllerStores');
+var adminController = require('../Controller/ControllerAdmin');
+
+
 
 var ze_admin = admin.initializeApp({
     credential: admin.credential.cert(ze_account),
@@ -141,8 +144,11 @@ exports.single_notification = async function (title, body, store_id) {
 
     try {
         const fcmTokens = await storeController.getFCMToken(store_id)
+        const fcmTokens2 = await adminController.getFCMToken(store_id)
+        const ______token = fcmTokens.concat(fcmTokens2)
+
         await ze_admin.messaging().sendMulticast({
-            tokens: fcmTokens,
+            tokens: ______token,
             notification: { title, body },
             android: {
                 priority: "high",

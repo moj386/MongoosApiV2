@@ -5,7 +5,8 @@ var admin_user = mongoose.Schema({
     name: String,
     mobile: String,
     role: String,
-    status: Boolean
+    status: Boolean,
+    notification_tokens:[],
 });
 
 module.exports = mongoose.model('admin_user', admin_user);
