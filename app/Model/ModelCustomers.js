@@ -50,7 +50,7 @@ const orderSchema = new mongoose.Schema({
   order_customer_comments: String,
   order_cooking_instructions: String,
 
-  order_staus: Number,
+  order_staus: { type: Number, default: 1 },  //  1 open | 0 closed | 2 delivered 
   order_payment_status: Number,
   order_payment_collection_status: Number,
   order_payment_collected_amount: Number,

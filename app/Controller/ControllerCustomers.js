@@ -455,6 +455,7 @@ exports.addOrder = async function (req, res) {
         order.order_service_charges = service_charges;
         order.order_net_amount = net_amount;
         order.order_vat_amount = vat_amount;
+        order.order_staus = 1,
 
 
         order.order_customer_id = customer_id;
@@ -571,6 +572,7 @@ exports.updateOrderInstruction = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
 exports.viewOrders = async function (req, res) {
     try {
         const { customer_id } = req.user;
@@ -583,6 +585,8 @@ exports.viewOrders = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
+
 exports.repeatOrder = async function (req, res) {
     try {
         const { customer_id } = req.user
@@ -787,3 +791,7 @@ exports.search = async function (req, res) {
         res.json({ status: 0, message: e.message });
     }
 }
+
+
+
+/////

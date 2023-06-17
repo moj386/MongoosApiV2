@@ -1,4 +1,8 @@
 Admin = require('../Model/ModelAdmin');
+const CustomerMaster = require('../Model/ModelCustomers');
+const Orders = CustomerMaster.Orders;
+
+
 const jwtToken = require('../../utils/tokenHandler');
 const bcrypt = require('bcryptjs');
 
@@ -32,3 +36,17 @@ exports.login = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 }
+
+
+
+exports.viewPendingOrders = async function (req, res) {
+    try {
+        const orders = await Orders.find({ order_staus: 1 })
+        .sort({ 'order_datetime': -1 })
+        .limit(50)
+        return res.json({ status: 1, message: 'Success', data: orders });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+};
