@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema({
     customer_wishlist_products:[String],
     customer_otp: { type: Number, select: false },
     customer_otp_expiry: { type: Date, select: false },
+    customer_otp_last_retry: { type: String, select: false },
+    customer_otp_max_retries: { type: Number, select: false , default: 0 },
     customer_pay_token: String
 
 });

@@ -370,58 +370,78 @@ exports.getSearchedStores = async function (req, res) {
     const location = [parseFloat(latt), parseFloat(long)]
 
     try {
-        const data = await Product.aggregate([
+        const data = await Stores.aggregate([
             {
-                "$search": {
-                    "index": "autocomplete",
-                    "compound": {
-                        "must": [
-                            {
-                                "autocomplete": {
-                                    "query": `${term}`,
-                                    "path": "product_store_keywords",
-                                    "fuzzy": {
-                                        "maxEdits": 1,
-                                        "prefixLength": 3
-                                    }
-                                },
-                            },
-                            {
-                                "geoWithin": {
-                                    "circle": {
-                                        "center": {
-                                            "type": "Point",
-                                            "coordinates": location
+                $lookup:
+                {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "product_store_id",
+                    as: "products",
+                    "pipeline": [{
+                        "$search": {
+                            "index": "autocomplete",
+                            "compound": {
+                                "must": [
+                                    {
+                                        "autocomplete": {
+                                            "query": `${term}`,
+                                            "path": "product_store_keywords",
+                                            "fuzzy": {
+                                                "maxEdits": 1,
+                                                "prefixLength": 3
+                                            }
                                         },
-                                        "radius": 100 * METERS_PER_MILE
                                     },
-                                    "path": "product_store_pin_location"
-                                }
+                                    {
+                                        "geoWithin": {
+                                            "circle": {
+                                                "center": {
+                                                    "type": "Point",
+                                                    "coordinates": location
+                                                },
+                                                "radius": 100 * METERS_PER_MILE
+                                            },
+                                            "path": "product_store_pin_location"
+                                        }
+                                    }
+                                ]
                             }
-
-                        ]
-                    }
+                        }
+                    }]
                 }
             },
             {
                 $match: {
-                    "product_status": true,
-                    "product_available_fm": { $lte: currentNumber },
-                    "product_available_till": { $gte: currentNumber },
+                    "products.product_status": true,
+                    "products.product_available_fm": { $lte: currentNumber },
+                    "products.product_available_till": { $gte: currentNumber },
 
                 }
             },
             {
-                $lookup: {
-                    from: "stores",
-                    localField: "product_store_id",
-                    foreignField: "_id",
-                    as: "stores"
+                "$project": {
+                    _id: 1,
+                    store_name: 1,
+                    store_flat_discount: 1,
+                    store_state_docno: 1,
+                    store_area_docno: 1,
+                    store_pin_location: 1,
+                    store_address: 1,
+                    store_mobile: 1,
+                    store_email: 1,
+                    store_phone: 1,
+                    store_rating: 1,
+                    store_total_reviews: 1,
+                    store_image: 1,
+                    store_delivery_fee: 1,
+                    store_avg_delivery_minutes: 1,
+                    store_best_opt1: 1,
+                    store_best_opt2: 1,
+                    store_best_opt3: 1,
+                    store_best_opt4: 1,
                 }
-            },
-            {
-                $group: { _id: "$stores",  count: { $sum: 1 } }
-            } 
+            }
         ])
 
         res.json({ status: 1, message: 'Success', data: data });

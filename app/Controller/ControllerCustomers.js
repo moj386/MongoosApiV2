@@ -73,19 +73,45 @@ exports.otp_request = async function (req, res) {
     const { customer_mobile } = req.body;
     let customer_otp = Math.floor(Math.random() * 90000) + 10000;
     if (customer_mobile === '0552108371')
-        customer_otp = '12345'
+    customer_otp = '12345'
+
     var now = new Date();
     now.setMinutes(now.getMinutes() + 5);
     now = new Date(now);
+    const currentDate = new Date().toISOString().slice(0, 10);
+    let otp_max_retries = 0
+    let cust_details = await Customer.findOne({ customer_mobile }).select("+customer_otp_last_retry").select("+customer_otp_max_retries");
+    
+    if (cust_details) {
+        let { customer_otp_last_retry, customer_otp_max_retries } = cust_details ? cust_details : {}
+        otp_max_retries = customer_otp_max_retries
+        
+        if (otp_max_retries >= 4 && customer_otp_last_retry === currentDate) {
+            return res.status(403).json({ error: 'Maximum OTP limit reached for the day' });
+        }
+        if (customer_otp_last_retry === currentDate) {
+            otp_max_retries += 1;
+        } else {
+            otp_max_retries = 0;
+        }
+    }
+
     try {
         await functionOTPSMS(customer_mobile, customer_otp)
+        await Customer.updateOne({customer_mobile}, {
+            customer_otp_expiry: now,
+            customer_otp: customer_otp,
+            customer_otp_last_retry: currentDate,
+            customer_otp_max_retries: otp_max_retries
+        }, { upsert: true })
 
-        await Customer.updateOne({ customer_mobile }, { $set: { customer_otp, customer_otp_expiry: now } }, { upsert: true });
         res.json({ status: 1, message: 'Success', data: { otp: customer_otp } });
     } catch (e) {
         res.json({ status: 0, message: e.message });
     }
 }
+
+
 
 const functionOTPSMS = async (mobile, customer_otp) => {
 
