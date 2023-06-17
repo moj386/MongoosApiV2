@@ -74,7 +74,16 @@ exports.updateFCMToken = async function (req, res) {
     }
 };
 
-exports.getFCMToken = async function (store_id) {
-    const { notification_tokens } = await Admin.findById(store_id)
-    return notification_tokens
+exports.getFCMToken = async function (user) {
+    
+    const admin = await Admin.find({})
+    const key = 'notification_tokens';
+    const extractedValues = admin.map(obj => obj[key]);
+    let combinedArray = [];
+
+    for (let i = 0; i < extractedValues.length; i++) {
+      combinedArray = [...combinedArray, ...extractedValues[i]];
+    }
+    
+    return combinedArray
 }
