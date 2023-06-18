@@ -25,7 +25,7 @@ exports.register = async function (req, res) {
         store._id = lastnumber
         store.store_password = await bcrypt.hash(password, 10);
         store.store_email = store.store_email.toLowerCase();
-        store.store_keywords = product_store_keywords
+        store.store_keywords = store.store_name
         const customer = await store.save();
 
         const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
@@ -610,7 +610,7 @@ exports.addproduct = async function (req, res) {
     try {
         const { store_id } = req.user
         const __store = await Stores.findById(store_id)
-        const { store_pin_location, store_keywords } = __store
+        const { store_pin_location, store_name } = __store
 
         var product = new Product(req.body);
         const lastnumber = await Increment('products')
@@ -633,7 +633,7 @@ exports.addproduct = async function (req, res) {
         product.product_is_customisable = false
         product.product_store_pin_location = store_pin_location
         product.product_keywords = product.product_title,
-            product.product_store_keywords = store_keywords
+        product.product_store_keywords = store_name
 
         const item = await product.save();
 

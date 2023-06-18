@@ -18,10 +18,13 @@ var ze_admin2 = admin.initializeApp({
 exports.single = async function (req, res) {
     try {
         await ze_admin2.messaging().sendMulticast({
-            tokens: ['f3IKWv5EdkN6pldHhw7vRf:APA91bEZmPNM5JnhUKDjsRDI2s1wkzq7KGYbxP5r05gdwTiu366UbCaTDpEn29jVZOdjdNBZ3U9gR96_zqTXk_J4-zdF7ePKzV5__Yn_bESbVNgBeCkgNLegtyGtHgKs9ZXSFKMSVLst'],
+            tokens: ['f3IKWv5EdkN6pldHhw7vRf:APA91bEZmPNM5JnhUKDjsRDI2s1wkzq7KGYbxP5r05gdwTiu366UbCaTDpEn29jVZOdjdNBZ3U9gR96_zqTXk_J4-zdF7ePKzV5__Yn_bESbVNgBeCkgNLegtyGtHgKs9ZXSFKMSVLst',
+            'cWIM-a:APA91bHINvcMnjA45VqNtTbCvBwc6PBrTCtFfXNuqTspHliyEfYUxqXXiIU1XnrkYdsweUypf42F7nvmgi0AoEIkodQd5j-0Ti4GOrfF6Pfa2FX1mB7_9NrI274bOgaBJG0Rrb07kuqX',
+            'fZaSgFtEQZyTIUab7SkgXN:APA91bHSX7dCQw-LDZFdREPp7sPFFrWAt-MuiGVzidv2-uWc2urhtG9Ykdo3TggvwVNfGT8_xt-yaU4gi-L16ec1xaWHAgjyZ2S4v8GSbxVUq-qQBTRhQRJXsffvuBMW0XLSh5A6ZkeA',
+            'c8oUCSVYT7OLsIhl9sx071:APA91bFXroOTHCkN7bGBcSmqQQ5OeyzmDkPppPcn9wdwlBBJTFdxKEQ26qM7QAk1NDDWOJ31EnDkoTkwf6xenBgg37YnsJ-aBcloZeXTr1Imwevfbmv986DaEQHU7y8ERbH7DpARSJyX'],
             "notification": {
-                "title": 'Kibsons',
-                "body": 'Kibsons new arrivals'
+                "title": 'ZeShop',
+                "body": 'New order!'
             },
             "data": {
                 "action": "PRODUCTS", "actionParam": "10", "actionType": "EPM", "headerParam": "Notification"
