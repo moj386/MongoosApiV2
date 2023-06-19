@@ -59,6 +59,9 @@ router.route('/search/suggestion').post(storeController.getSuggestionList)
 router.route('/search/stores').post(storeController.getSearchedStores)
 router.route('/search/products').post(storeController.getSearchedProducts)
 
+router.route('/password/rest').post(storeController.reset_password)
+
+
 
 router.route('/updateKeyword').get(storeController.updateKeywords)
 

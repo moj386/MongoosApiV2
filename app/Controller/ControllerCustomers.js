@@ -111,8 +111,6 @@ exports.otp_request = async function (req, res) {
     }
 }
 
-
-
 const functionOTPSMS = async (mobile, customer_otp) => {
 
     const text = `${customer_otp} is your ZeShop verification code.`
@@ -126,8 +124,6 @@ const functionOTPSMS = async (mobile, customer_otp) => {
     }
 
 }
-
-
 
 exports.login = async function (req, res) {
     try {

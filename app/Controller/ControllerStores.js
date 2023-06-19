@@ -45,6 +45,35 @@ exports.register = async function (req, res) {
 
 };
 
+exports.reset_password = async function (req, res) {
+    try {
+        const password = '667544'
+        const { store_email } = req.body
+        const _data = Stores.findOne({ store_email })
+       
+        const store_password = await bcrypt.hash(password, 10);
+
+        const filter = { _id: _data._id };
+        const update = { store_password };
+        const result = await Stores.findOneAndUpdate(filter, update);
+
+        //const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
+        //const subject = 'Password reset | Zeshop'
+        
+        //sendSMS(store.store_mobile, text)
+        //email.sendEmail(store.store_email, subject, text)
+
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+     }
+
+
+};
+
+
+
 const sendSMS = async (mobile, text) => {
     try {
         const smsURL = encodeURIComponent(`https://api.rmlconnect.net:8443/bulksms/bulksms?username=ZainTrans&
@@ -518,14 +547,14 @@ exports.getSearchedProducts = async function (req, res) {
 
 
 exports.updateKeywords = async function (req, res) {
-   
+
     const store = await Stores.find({})
 
-    store.forEach( async (item)=>{
-        const { store_name , _id } = item
+    store.forEach(async (item) => {
+        const { store_name, _id } = item
         const filter = { product_store_id: _id };
-        const update = { product_store_keywords: store_name};
-       const tt=  await Product.findOneAndUpdate(filter, update);
+        const update = { product_store_keywords: store_name };
+        const tt = await Product.findOneAndUpdate(filter, update);
     })
     return res.json({ status: 1, message: 'Success' });
 }
@@ -633,7 +662,7 @@ exports.addproduct = async function (req, res) {
         product.product_is_customisable = false
         product.product_store_pin_location = store_pin_location
         product.product_keywords = product.product_title,
-        product.product_store_keywords = store_name
+            product.product_store_keywords = store_name
 
         const item = await product.save();
 
