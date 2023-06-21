@@ -73,7 +73,7 @@ exports.otp_request = async function (req, res) {
     const { customer_mobile } = req.body;
     let customer_otp = Math.floor(Math.random() * 90000) + 10000;
     if (customer_mobile === '0552108371')
-    customer_otp = '12345'
+        customer_otp = '12345'
 
     var now = new Date();
     now.setMinutes(now.getMinutes() + 5);
@@ -81,11 +81,11 @@ exports.otp_request = async function (req, res) {
     const currentDate = new Date().toISOString().slice(0, 10);
     let otp_max_retries = 0
     let cust_details = await Customer.findOne({ customer_mobile }).select("+customer_otp_last_retry").select("+customer_otp_max_retries");
-    
+
     if (cust_details) {
         let { customer_otp_last_retry, customer_otp_max_retries } = cust_details ? cust_details : {}
         otp_max_retries = customer_otp_max_retries
-        
+
         if (otp_max_retries >= 4 && customer_otp_last_retry === currentDate) {
             return res.status(403).json({ error: 'Maximum OTP limit reached for the day' });
         }
@@ -98,7 +98,7 @@ exports.otp_request = async function (req, res) {
 
     try {
         await functionOTPSMS(customer_mobile, customer_otp)
-        await Customer.updateOne({customer_mobile}, {
+        await Customer.updateOne({ customer_mobile }, {
             customer_otp_expiry: now,
             customer_otp: customer_otp,
             customer_otp_last_retry: currentDate,
@@ -119,7 +119,7 @@ const functionOTPSMS = async (mobile, customer_otp) => {
 
     try {
         await axios.get(smsURL)
-    } catch (e) { 
+    } catch (e) {
         console.log(e);
     }
 
@@ -345,8 +345,8 @@ exports.addCart = async function (req, res) {
         removeOtherStores = removeOtherStores.filter(x => x._id !== product._id)
         if (quantity > 0)
             removeOtherStores.push(product)
-        
-            Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart" : {products: removeOtherStores} } }, function (err) {
+
+        Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart": { products: removeOtherStores } } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
@@ -363,7 +363,7 @@ exports.viewCart = async function (req, res) {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
         const { customer_cart } = __customer;
-        const customer_cart_products  = customer_cart.products
+        const customer_cart_products = customer_cart.products
 
         const total_amount = customer_cart_products.reduce((acc, item) => {
             const { product_cart_qty, product_price } = item
@@ -409,7 +409,7 @@ exports.deleteCart = async function (req, res) {
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
 
-        Customer.update({ _id: __customer._id }, { "$set": { "customer_cart": {products: []} } }, function (err) {
+        Customer.update({ _id: __customer._id }, { "$set": { "customer_cart": { products: [] } } }, function (err) {
             if (err)
                 res.json({ status: 0, message: err.message });
             else
@@ -429,17 +429,17 @@ exports.addOrder = async function (req, res) {
         const order = new Orders(req.body)
         const __customer = await Customer.findById(customer_id);
         const { customer_cart } = __customer;
-        const 
-        { 
-            products,
-            gross_amount,
-            discount_amount,
-            delivery_fee,
-            vat_amount,
-            service_charges,
-            net_amount
-        
-        } = customer_cart ? customer_cart : {}
+        const
+            {
+                products,
+                gross_amount,
+                discount_amount,
+                delivery_fee,
+                vat_amount,
+                service_charges,
+                net_amount
+
+            } = customer_cart ? customer_cart : {}
 
         const __store = await Stores.findById(order.order_store_id);
         const lastnumber = await Increment('orders')
@@ -454,7 +454,7 @@ exports.addOrder = async function (req, res) {
         order.order_staus = 1,
 
 
-        order.order_customer_id = customer_id;
+            order.order_customer_id = customer_id;
         order.order_customer_email = __customer.customer_email;
         order.order_customer_mobile = __customer.customer_mobile;
         order.order_products = products;
@@ -573,8 +573,8 @@ exports.viewOrders = async function (req, res) {
     try {
         const { customer_id } = req.user;
         const orders = await Orders.find({ order_customer_id: customer_id })
-        .sort({ 'order_datetime': -1 })
-        .limit(50)
+            .sort({ 'order_datetime': -1 })
+            .limit(50)
         return res.json({ status: 1, message: 'Success', data: orders });
 
     } catch (err) {
@@ -592,7 +592,7 @@ exports.repeatOrder = async function (req, res) {
 
         const __customer = await Customer.findById(customer_id);
 
-        Customer.updateOne({ _id: __customer._id }, { "$set": {  "customer_cart": {products: order_products} } }, function (err) {
+        Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart": { products: order_products } } }, function (err) {
             if (err)
                 return res.json({ status: 0, message: err.message });
             else
@@ -612,7 +612,7 @@ exports.makePayment = async function (req, res) {
     try {
 
         const { customer_id } = req.user
-        const { 
+        const {
             canSaveCard,
             order_net_amount,
             item_total,
@@ -638,7 +638,7 @@ exports.makePayment = async function (req, res) {
             )
         }
 
-        await Customer.updateOne({ _id: customer_id }, { 
+        await Customer.updateOne({ _id: customer_id }, {
             customer_pay_token,
             gross_amount: item_total,
             delivery_fee: store_delivery_fee,
@@ -646,7 +646,7 @@ exports.makePayment = async function (req, res) {
             service_charges: service_charges,
             net_amount: grand_total
         })
-        
+
         let pay_intent = {
             amount: Math.round(order_net_amount * 100),
             currency: "AED",
@@ -788,6 +788,17 @@ exports.search = async function (req, res) {
     }
 }
 
+exports.deleteAccount = async function (req, res) {
+
+    try {
+        const { customer_id } = req.user;
+        await Customer.findByIdAndRemove(customer_id);
+        return res.json({ status: 1, message: 'Success' });
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+}
 
 
 /////

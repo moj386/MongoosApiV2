@@ -44,25 +44,14 @@ router.route('/order/all').get(auth, storeController.myOrders)
 router.route('/order/id').post(auth, storeController.singleOrders)
 router.route('/order/updatestatus').post(auth, storeController.singleOrderStatus)
 router.route('/order/payments').get(auth, storeController.myPayments)
-
 router.route('/id').get(auth, storeController.myStore)
-
-
 router.route('/nearbystoresV2').post(storeController.getNearBuyStoresV2)
-
 router.route('/admin/products').post(auth, storeController.adminProducts);
-
-
 router.route('/updateFCMToken').post(auth, storeController.updateFCMToken)
-
 router.route('/search/suggestion').post(storeController.getSuggestionList)
 router.route('/search/stores').post(storeController.getSearchedStores)
 router.route('/search/products').post(storeController.getSearchedProducts)
-
 router.route('/password/rest').post(storeController.reset_password)
-
-
-
 router.route('/updateKeyword').get(storeController.updateKeywords)
 
 module.exports = router;
