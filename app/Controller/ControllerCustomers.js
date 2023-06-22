@@ -792,8 +792,8 @@ exports.deleteAccount = async function (req, res) {
 
     try {
         const { customer_id } = req.user;
-        await Customer.findByIdAndRemove(customer_id);
-        return res.json({ status: 1, message: 'Success' });
+        const ii = await Customer.deleteOne({_id: customer_id});
+        return res.json({ status: 1, message: 'Success', data : ii });
 
     } catch (err) {
         res.json({ status: 0, message: err.message });

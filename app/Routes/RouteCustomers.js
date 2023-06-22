@@ -66,7 +66,7 @@ router.route('/wishlist/restaurant').get(auth, customerController.view_wishlist_
 
 
 router.route('/search').post(customerController.search)
-router.route('/account/delete').post(customerController.deleteAccount)
+router.route('/account/delete').post(auth, customerController.deleteAccount)
 
 
 
