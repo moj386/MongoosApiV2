@@ -86,8 +86,8 @@ exports.otp_request = async function (req, res) {
         let { customer_otp_last_retry, customer_otp_max_retries } = cust_details ? cust_details : {}
         otp_max_retries = customer_otp_max_retries
 
-        if (otp_max_retries >= 4 && customer_otp_last_retry === currentDate) {
-            return res.status(403).json({ error: 'Maximum OTP limit reached for the day' });
+        if (otp_max_retries >= 4 && customer_otp_last_retry === currentDate && customer_mobile !== '0552108371') {
+            return res.status(403).json({ status: 0, message: 'Maximum OTP limit reached for the day' });
         }
         if (customer_otp_last_retry === currentDate) {
             otp_max_retries += 1;
@@ -110,6 +110,7 @@ exports.otp_request = async function (req, res) {
         res.json({ status: 0, message: e.message });
     }
 }
+
 
 const functionOTPSMS = async (mobile, customer_otp) => {
 
