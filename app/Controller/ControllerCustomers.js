@@ -175,8 +175,18 @@ exports.verifyLocation = async function (req, res) {
 
 exports.products = async function (req, res) {
     try {
+        const currentHH = new Date().getHours();
+        const currentMM = new Date().getMinutes();
+        const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
         const { store_id } = req.body
-        const data = await Product.find({ product_store_id: store_id })
+        const data = await Product.find({
+            product_store_id: store_id,
+            product_status: true,
+            product_available_fm: { $lte: currentNumber },
+            product_available_till: { $gte: currentNumber },
+        })
+        
+    
         return res.json({ status: 1, message: 'Success', data });
 
     } catch (e) {
@@ -361,6 +371,9 @@ exports.addCart = async function (req, res) {
 };
 exports.viewCart = async function (req, res) {
     try {
+
+        const discountPercentage = 0
+
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
         const { customer_cart } = __customer;
@@ -380,7 +393,7 @@ exports.viewCart = async function (req, res) {
         const __products = customer_cart_products.sort((a, b) => new Date(b.product_created_ts) - new Date(a.product_created_ts));
 
         const service_charges = 1 + (total_amount * 0.03)
-        const grand_total = (total_amount + service_charges)
+        const grand_total = (( total_amount * (1 - discountPercentage) ) + service_charges)
 
         const data = {
             productsCart: __products,
@@ -388,13 +401,15 @@ exports.viewCart = async function (req, res) {
             item_total: total_amount,
             grand_total,
             service_charges,
-            vat_total: total_amount * 0.05,
+            vat_total: 0,
             store_delivery_fee,
             store_latitude,
             store_longitude,
             store_name,
             store_id: product_store_id,
-            store_pin_location
+            store_pin_location,
+            otherAmount: -1* (discountPercentage * total_amount),
+            otherAmountDesc: 'Discount'
         }
 
         return res.json({ status: 1, message: 'Success', data: data });

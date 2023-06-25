@@ -50,7 +50,7 @@ exports.reset_password = async function (req, res) {
         const password = '667544'
         const { store_email } = req.body
         const _data = Stores.findOne({ store_email })
-       
+
         const store_password = await bcrypt.hash(password, 10);
 
         const filter = { _id: _data._id };
@@ -59,7 +59,7 @@ exports.reset_password = async function (req, res) {
 
         //const text = `Your login id is ${store.store_email} and your password is ${password}. \n\nThank you for being a partner with Zeshop.`
         //const subject = 'Password reset | Zeshop'
-        
+
         //sendSMS(store.store_mobile, text)
         //email.sendEmail(store.store_email, subject, text)
 
@@ -67,7 +67,7 @@ exports.reset_password = async function (req, res) {
 
     } catch (err) {
         res.json({ status: 0, message: err.message });
-     }
+    }
 
 
 };
@@ -633,7 +633,6 @@ exports.myPayments = async function (req, res) {
     }
 };
 
-
 exports.addproduct = async function (req, res) {
     const commisionFee = 1;
     try {
@@ -671,6 +670,127 @@ exports.addproduct = async function (req, res) {
         res.json({ status: 0, message: error.message });
     }
 };
+
+exports.updateSingle = async function (req, res) {
+    const commisionFee = 1;
+    try {
+
+        const { store_id } = req.user
+        const __store = await Stores.findById(store_id)
+        const { store_pin_location, store_name } = __store
+        const {
+            _id,
+            product_title,
+            product_store_price,
+            product_discount_percentage,
+            product_detail_title,
+            product_dietary_info,
+            product_available_fm,
+            product_available_till,
+            product_category
+        } = req.body
+
+
+        const discountPercentage = product_discount_percentage ? product_discount_percentage : 0;
+        const storeRate = product_store_price;
+        var sellingRate = product_store_price;
+
+        if (discountPercentage && discountPercentage > 0) {
+            sellingRate = (sellingRate - (sellingRate * discountPercentage) / 100).toFixed(2);
+        }
+        const rateBeforeDiscount = (storeRate * commisionFee).toFixed(2);
+        sellingRate = (sellingRate * commisionFee).toFixed(2);
+
+        const update = {
+            product_price: sellingRate,
+            product_price_before_discount: rateBeforeDiscount,
+            product_discount_percentage: discountPercentage,
+            product_keywords: product_title,
+            product_store_keywords: store_name,
+            product_available_fm,
+            product_available_till,
+            product_detail_title,
+            product_dietary_info,
+            product_category,
+            product_store_pin_location: store_pin_location
+        }
+
+        const filter = { _id };
+        const result = await Product.findOneAndUpdate(filter, update);
+
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+
+exports.updateSize = async function (req, res) {
+    const commisionFee = 1;
+    try {
+        const { _id, name, gross_rate, discount, status } = req.body
+        const storeRate = gross_rate;
+        var sellingRate = gross_rate;
+
+        const discountPercentage = discount ? discount : 0;
+        if (discountPercentage && discountPercentage > 0) {
+            sellingRate = (sellingRate - (sellingRate * discountPercentage) / 100).toFixed(2);
+        }
+        const rateBeforeDiscount = (storeRate * commisionFee).toFixed(2);
+        sellingRate = (sellingRate * commisionFee).toFixed(2);
+        
+        const product_data = await Product.findById(_id)
+        let { product_sizes } = product_data
+
+        let _tokens = product_sizes ? product_sizes : []
+        let _filter = _tokens.filter(x => x.name !== name)
+        const new_data = { name, gross_rate: rateBeforeDiscount, rate: sellingRate, discount, status}
+        _filter.push(new_data)
+
+        const update = {
+            product_sizes: _filter,
+            product_is_customisable: _filter.length > 0
+        }
+
+        const filter = { _id };
+        const result = await Product.findOneAndUpdate(filter, update);
+
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+
+exports.deleteSize = async function (req, res) {
+
+    try {
+
+        const { _id, name } = req.body
+
+        const product_data = await Product.findById(_id)
+        let { product_sizes } = product_data
+
+        let _tokens = product_sizes ? product_sizes : []
+        let _filter = _tokens.filter(x => x.name !== name)
+        
+        const update = {
+            product_sizes: _filter,
+            product_is_customisable: _filter.length > 0
+
+        }
+
+        const filter = { _id };
+        const result = await Product.findOneAndUpdate(filter, update);
+
+        return res.json({ status: 1, message: 'Success', data: result });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+
+
 
 exports.single = async function (req, res) {
     try {
@@ -764,42 +884,6 @@ exports.updateStatus = async function (req, res) {
     }
 };
 
-exports.updateSingle = async function (req, res) {
-    const commisionFee = 1;
-    try {
-
-        const { store_id } = req.user
-        const __store = await Stores.findById(store_id)
-        const { store_pin_location, store_keywords } = __store
-
-        var product = new Product(req.body);
-        const discountPercentage = product.product_discount_percentage ? product.product_discount_percentage : 0;
-        const storeRate = product.product_store_price;
-        var sellingRate = product.product_store_price;
-
-
-        if (discountPercentage && discountPercentage > 0) {
-            sellingRate = (sellingRate - (sellingRate * discountPercentage) / 100).toFixed(2);
-        }
-        const rateBeforeDiscount = (storeRate * commisionFee).toFixed(2);
-        sellingRate = (sellingRate * commisionFee).toFixed(2);
-        product.product_price = sellingRate;
-        product.product_price_before_discount = rateBeforeDiscount;
-        product.product_discount_percentage = discountPercentage;
-        product.product_store_pin_location = store_pin_location
-        product.product_store_keywords = store_keywords
-
-
-        const data = await Product.findOneAndUpdate({ _id: product._id }, product, { new: true })
-
-
-
-        return res.json({ status: 1, message: 'Success', data });
-
-    } catch (error) {
-        res.json({ status: 0, message: error.message });
-    }
-};
 
 exports.addColor = async function (req, res) {
     try {

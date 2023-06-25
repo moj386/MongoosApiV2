@@ -14,6 +14,16 @@ const __variation = {
     option_details:option_details 
 }
 
+const size_details = {
+    name: { type: String, required: true, unique: true},
+    gross_rate: Number,
+    rate: Number,
+    discount: Number,
+    status: Boolean
+}
+
+
+
 
 var ProductSchema = mongoose.Schema({
     _id: String,
@@ -27,7 +37,6 @@ var ProductSchema = mongoose.Schema({
     product_dietary_info: { type: Boolean, required: true },
     product_rating: { type: Number, required: false },
     product_total_reviews: { type: Number, required: false },
-    product_is_customisable: { type: Boolean, required: true },
     product_image_name: { type: String, required: false },
     product_status: { type: Boolean, required: true },
 
@@ -45,6 +54,8 @@ var ProductSchema = mongoose.Schema({
     product_cart_amount: Number,
     product_created_ts: { type: Date, default: Date.now },
     product_store_pin_location:  { type: { type: String }, coordinates: [] },
+    product_sizes: [size_details],
+    product_is_customisable: { type: Boolean, required: true }
 
 }); 
 module.exports = ProductSchema

@@ -35,6 +35,10 @@ router.route('/product/photos')
 router.route('/upload/photo')
 .post(auth, storeController.update_store_photo);
 
+router.route('/product/size')
+.put(auth, storeController.updateSize)
+.post(auth, storeController.deleteSize)
+
 
 
 router.route('/nearbystores').post(storeController.getNearBuyStores)
