@@ -185,6 +185,9 @@ exports.getNearBuyStoresV2 = async function (req, res) {
     const METERS_PER_MILE = 1000;
     const currentHH = new Date().getHours();
     const currentMM = new Date().getMinutes();
+    const currentTime = new Date().getTime();
+
+    
     const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
     const location = [parseFloat(latt), parseFloat(long)]
     try {
@@ -265,6 +268,96 @@ exports.getNearBuyStoresV2 = async function (req, res) {
         res.json({ status: 0, message: e.message });
     }
 }
+
+exports.getNearBuyStoresV3 = async function (req, res) {
+    const { long, latt } = req.body;
+    const METERS_PER_MILE = 1000;
+    const currentHH = new Date().getHours();
+    const currentMM = new Date().getMinutes();
+    const currentTime = new Date().getTime();
+
+    
+    const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
+    const location = [parseFloat(latt), parseFloat(long)]
+    try {
+        const data = await Stores.aggregate([
+            {
+                $geoNear: {
+                    includeLocs: "sstore_pin_location",
+                    distanceField: "distance",
+                    near: { type: "Point", coordinates: location },
+                    maxDistance: 10 * METERS_PER_MILE,
+                    spherical: true
+                }
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "product_store_id",
+                    as: "products"
+                }
+            },
+            {
+                $match: {
+                    "products.product_status": true,
+                    "products.product_availability.from": { $lte: currentTime },
+                    "products.product_availability.to": { $gte: currentTime },
+                }
+            },
+            {
+                "$project": {
+                    _id: 1,
+                    store_name: 1,
+                    store_flat_discount: 1,
+                    store_state_docno: 1,
+                    store_area_docno: 1,
+                    store_pin_location: 1,
+                    store_address: 1,
+                    store_mobile: 1,
+                    store_email: 1,
+                    store_phone: 1,
+                    store_rating: 1,
+                    store_total_reviews: 1,
+                    store_image: 1,
+                    store_delivery_fee: 1,
+                    store_avg_delivery_minutes: 1,
+                    store_best_opt1: 1,
+                    store_best_opt2: 1,
+                    store_best_opt3: 1,
+                    store_best_opt4: 1,
+                }
+            }
+
+        ])
+
+        // const data = await Stores.find(
+        //     { 
+        //         _id: { $in: Product.distinct("field2") },
+        //         store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } }
+        //     })
+
+
+        // const data = await Product.find({ 
+        //     product_store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } },
+        //     product_status: true,
+        //     product_available_fm: { $lte: currentNumber },
+        //     product_available_till: { $gte: currentNumber }},
+        //     { "_id": 0, "product_store_id": 1 })
+
+        //     const __storeList = data.reduce((acc, item) =>{
+        //         return acc.push(item.product_store_id)
+        //     },[])
+        //const stores =  await Stores.find({ store_pin_location: { $nearSphere: { $geometry: { type: "Point", coordinates: [latt, long] }, $maxDistance: 108 * METERS_PER_MILE } } })
+
+
+
+        res.json({ status: 1, message: 'Success', data: data });
+    } catch (e) {
+        res.json({ status: 0, message: e.message });
+    }
+}
+
 
 
 ////// ------ SEARCH
@@ -676,8 +769,6 @@ exports.updateSingle = async function (req, res) {
     try {
 
         const { store_id } = req.user
-        const __store = await Stores.findById(store_id)
-        const { store_pin_location, store_name } = __store
         const {
             _id,
             product_title,
@@ -685,11 +776,16 @@ exports.updateSingle = async function (req, res) {
             product_discount_percentage,
             product_detail_title,
             product_dietary_info,
-            product_available_fm,
-            product_available_till,
-            product_category
+            product_category,
+            product_store_id,
+            product_opening_time,
+            product_closing_time,
+           
         } = req.body
-
+ 
+        const __store = await Stores.findById( product_store_id ? product_store_id: store_id)
+        const { store_pin_location, store_name } = __store
+       
 
         const discountPercentage = product_discount_percentage ? product_discount_percentage : 0;
         const storeRate = product_store_price;
@@ -702,16 +798,17 @@ exports.updateSingle = async function (req, res) {
         sellingRate = (sellingRate * commisionFee).toFixed(2);
 
         const update = {
+            product_title,
             product_price: sellingRate,
             product_price_before_discount: rateBeforeDiscount,
             product_discount_percentage: discountPercentage,
             product_keywords: product_title,
             product_store_keywords: store_name,
-            product_available_fm,
-            product_available_till,
             product_detail_title,
             product_dietary_info,
             product_category,
+            product_opening_time,
+            product_closing_time,
             product_store_pin_location: store_pin_location
         }
 

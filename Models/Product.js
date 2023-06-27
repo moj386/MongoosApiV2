@@ -55,7 +55,10 @@ var ProductSchema = mongoose.Schema({
     product_created_ts: { type: Date, default: Date.now },
     product_store_pin_location:  { type: { type: String }, coordinates: [] },
     product_sizes: [size_details],
-    product_is_customisable: { type: Boolean, required: true }
+    product_is_customisable: { type: Boolean, required: true },
+    product_opening_time: String,
+    product_closing_time: String
+    
 
 }); 
 module.exports = ProductSchema
