@@ -25,11 +25,12 @@ const size_details = {
 
 
 
+
 var ProductSchema = mongoose.Schema({
     _id: String,
     product_store_id:{ type: String, required: true },
     product_title: { type: String, required: true },
-    product_store_price: { type: Number, required: false, select: false },
+    product_store_price: { type: Number, required: false },
     product_discount_percentage: { type: Number, required: true },
     product_price_before_discount: { type: Number, required: true },
     product_price: { type: Number, required: true },
@@ -57,7 +58,8 @@ var ProductSchema = mongoose.Schema({
     product_sizes: [size_details],
     product_is_customisable: { type: Boolean, required: true },
     product_opening_time: String,
-    product_closing_time: String
+    product_closing_time: String,
+    product_available_times:[{ start_time: String,  end_time: String }]
     
 
 }); 

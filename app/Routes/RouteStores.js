@@ -50,6 +50,8 @@ router.route('/order/updatestatus').post(auth, storeController.singleOrderStatus
 router.route('/order/payments').get(auth, storeController.myPayments)
 router.route('/id').get(auth, storeController.myStore)
 router.route('/nearbystoresV2').post(storeController.getNearBuyStoresV2)
+router.route('/nearbystoresV3').post(storeController.getNearBuyStoresV3)
+
 router.route('/admin/products').post(auth, storeController.adminProducts);
 router.route('/updateFCMToken').post(auth, storeController.updateFCMToken)
 router.route('/search/suggestion').post(storeController.getSuggestionList)
