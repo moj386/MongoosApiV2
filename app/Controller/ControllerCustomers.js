@@ -175,15 +175,23 @@ exports.verifyLocation = async function (req, res) {
 
 exports.products = async function (req, res) {
     try {
-        const currentHH = new Date().getHours();
-        const currentMM = new Date().getMinutes();
-        const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
+        const currentDate = new Date();
+        const currentHour = String(currentDate.getHours()).padStart(2, '0');
+        const currentMinute = String(currentDate.getMinutes()).padStart(2, '0');
+        const currentTime = `${currentHour}:${currentMinute}`;
+
         const { store_id } = req.body
         const data = await Product.find({
             product_store_id: store_id,
             product_status: true,
-            product_available_fm: { $lte: currentNumber },
-            product_available_till: { $gte: currentNumber },
+            product_available_times: {
+                $elemMatch: {
+                    $and: [
+                        { start_time: { $lte: currentTime } },
+                        { end_time: { $gte: currentTime } }
+                    ]
+                }
+            }
         })
         
     
@@ -369,6 +377,7 @@ exports.addCart = async function (req, res) {
     }
 
 };
+
 exports.viewCart = async function (req, res) {
     try {
 
@@ -380,8 +389,8 @@ exports.viewCart = async function (req, res) {
         const customer_cart_products = customer_cart.products
 
         const total_amount = customer_cart_products.reduce((acc, item) => {
-            const { product_cart_qty, product_price } = item
-            return acc + (product_cart_qty * product_price)
+            const { product_cart_amount } = item
+            return acc + (product_cart_amount)
 
         }, 0)
         const __single = customer_cart_products ? customer_cart_products[0] : {}
@@ -420,6 +429,7 @@ exports.viewCart = async function (req, res) {
     }
 
 };
+
 exports.deleteCart = async function (req, res) {
     try {
         const { customer_id } = req.user;
@@ -467,10 +477,8 @@ exports.addOrder = async function (req, res) {
         order.order_service_charges = service_charges;
         order.order_net_amount = net_amount;
         order.order_vat_amount = vat_amount;
-        order.order_staus = 1,
-
-
-            order.order_customer_id = customer_id;
+        order.order_status = 1,
+        order.order_customer_id = customer_id;
         order.order_customer_email = __customer.customer_email;
         order.order_customer_mobile = __customer.customer_mobile;
         order.order_products = products;
@@ -514,7 +522,6 @@ exports.viewOrder = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
-
 exports.viewOrderHome = async function (req, res) {
     try {
         const { customer_id } = req.user;
@@ -584,7 +591,6 @@ exports.updateOrderInstruction = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
-
 exports.viewOrders = async function (req, res) {
     try {
         const { customer_id } = req.user;
@@ -597,8 +603,6 @@ exports.viewOrders = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
-
-
 exports.repeatOrder = async function (req, res) {
     try {
         const { customer_id } = req.user

@@ -28,6 +28,10 @@ router.route('/product/extrainfo')
 router.route('/product/photos')
 .post(auth, storeController.UpdateImages);
 
+router.route('/product/photos/v2')
+.post(auth, storeController.create_new_product);
+
+
 router.route('/product/photos')
 .delete(auth, storeController.deleteImages);
 
@@ -39,10 +43,7 @@ router.route('/product/size')
 .put(auth, storeController.updateSize)
 .post(auth, storeController.deleteSize)
 
-
-
 router.route('/nearbystores').post(storeController.getNearBuyStores)
-
 
 router.route('/order/all').get(auth, storeController.myOrders)
 router.route('/order/id').post(auth, storeController.singleOrders)

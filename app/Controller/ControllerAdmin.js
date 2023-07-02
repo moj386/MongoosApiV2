@@ -41,7 +41,7 @@ exports.login = async function (req, res) {
 
 exports.viewPendingOrders = async function (req, res) {
     try {
-        const orders = await Orders.find({ order_staus: 1 })
+        const orders = await Orders.find({ order_status: 1 })
         .sort({ 'order_datetime': -1 })
         .limit(50)
         return res.json({ status: 1, message: 'Success', data: orders });
@@ -51,6 +51,17 @@ exports.viewPendingOrders = async function (req, res) {
     }
 };
 
+exports.changeOrderStatus = async function (req, res) {
+    try {
+        const { store_id, order_status } = req.body;
+        const filter = { _id: store_id };
+        const update = { order_status };
+        await Stores.findOneAndUpdate(filter, update);
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+};
 
 
 exports.updateFCMToken = async function (req, res) {

@@ -185,11 +185,16 @@ exports.getNearBuyStoresV2 = async function (req, res) {
     const METERS_PER_MILE = 1000;
     const currentHH = new Date().getHours();
     const currentMM = new Date().getMinutes();
-    const currentTime = new Date().getTime();
+    //const currentTime = new Date().getTime();
 
+    const currentDate = new Date();
+    const currentHour = String(currentDate.getHours()).padStart(2, '0');
+    const currentMinute = String(currentDate.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHour}:${currentMinute}`;
+    //const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
     
-    const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
     const location = [parseFloat(latt), parseFloat(long)]
+   
     try {
         const data = await Stores.aggregate([
             {
@@ -211,9 +216,17 @@ exports.getNearBuyStoresV2 = async function (req, res) {
             },
             {
                 $match: {
+                    "products.product_available_times": {
+                        $elemMatch: {
+                            $and: [
+                                { start_time: { $lte: currentTime } },
+                                { end_time: { $gte: currentTime } }
+                            ]
+                        }
+                    },
                     "products.product_status": true,
-                    "products.product_available_fm": { $lte: currentNumber },
-                    "products.product_available_till": { $gte: currentNumber },
+                    // "products.product_available_fm": { $lte: currentNumber },
+                    // "products.product_available_till": { $gte: currentNumber },
                 }
             },
             {
@@ -279,22 +292,23 @@ exports.getNearBuyStoresV3 = async function (req, res) {
     const currentTime = `${currentHour}:${currentMinute}`;
 
     const data = await Product.find({
+        product_store_id:"193",
         product_available_times: {
             $elemMatch: {
-              $and: [
-                { start_time: { $lte: currentTime } },
-                { end_time: { $gte: currentTime } }
-              ]
+                $and: [
+                    { start_time: { $lte: currentTime } },
+                    { end_time: { $gte: currentTime } }
+                ]
             }
-          }
+        }
 
         // product_opening_time: { $lte: currentTime },
         // product_closing_time: { $gte: currentTime },
     })
-       
+
     res.json({ status: 1, message: 'Success', data: data });
 
-  
+
 }
 
 
@@ -305,10 +319,11 @@ exports.getNearBuyStoresV3 = async function (req, res) {
 exports.getSuggestionList = async function (req, res) {
     const { long, latt, term } = req.body;
     const METERS_PER_MILE = 1000;
-    const currentHH = new Date().getHours();
-    const currentMM = new Date().getMinutes();
-    const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
     const location = [parseFloat(latt), parseFloat(long)]
+    const currentDate = new Date();
+    const currentHour = String(currentDate.getHours()).padStart(2, '0');
+    const currentMinute = String(currentDate.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHour}:${currentMinute}`;
 
     try {
 
@@ -348,8 +363,14 @@ exports.getSuggestionList = async function (req, res) {
             {
                 $match: {
                     "product_status": true,
-                    "product_available_fm": { $lte: currentNumber },
-                    "product_available_till": { $gte: currentNumber },
+                    "product_available_times": {
+                        $elemMatch: {
+                            $and: [
+                                { start_time: { $lte: currentTime } },
+                                { end_time: { $gte: currentTime } }
+                            ]
+                        }
+                    },
 
                 }
             },
@@ -399,8 +420,14 @@ exports.getSuggestionList = async function (req, res) {
             {
                 $match: {
                     "product_status": true,
-                    "product_available_fm": { $lte: currentNumber },
-                    "product_available_till": { $gte: currentNumber },
+                    "product_available_times": {
+                        $elemMatch: {
+                            $and: [
+                                { start_time: { $lte: currentTime } },
+                                { end_time: { $gte: currentTime } }
+                            ]
+                        }
+                    },
 
                 }
             },
@@ -416,7 +443,6 @@ exports.getSuggestionList = async function (req, res) {
         ])
 
         const data = stores.concat(products)
-
         res.json({ status: 1, message: 'Success', data: data });
     } catch (e) {
         res.json({ status: 0, message: e.message });
@@ -425,9 +451,10 @@ exports.getSuggestionList = async function (req, res) {
 exports.getSearchedStores = async function (req, res) {
     const { long, latt, term } = req.body;
     const METERS_PER_MILE = 1000;
-    const currentHH = new Date().getHours();
-    const currentMM = new Date().getMinutes();
-    const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
+    const currentDate = new Date();
+    const currentHour = String(currentDate.getHours()).padStart(2, '0');
+    const currentMinute = String(currentDate.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHour}:${currentMinute}`;
     const location = [parseFloat(latt), parseFloat(long)]
 
     try {
@@ -475,8 +502,14 @@ exports.getSearchedStores = async function (req, res) {
             {
                 $match: {
                     "products.product_status": true,
-                    "products.product_available_fm": { $lte: currentNumber },
-                    "products.product_available_till": { $gte: currentNumber },
+                    "products.product_available_times": {
+                        $elemMatch: {
+                            $and: [
+                                { start_time: { $lte: currentTime } },
+                                { end_time: { $gte: currentTime } }
+                            ]
+                        }
+                    },
 
                 }
             },
@@ -513,9 +546,10 @@ exports.getSearchedStores = async function (req, res) {
 exports.getSearchedProducts = async function (req, res) {
     const { long, latt, term } = req.body;
     const METERS_PER_MILE = 1000;
-    const currentHH = new Date().getHours();
-    const currentMM = new Date().getMinutes();
-    const currentNumber = parseFloat(`${currentHH}.${currentMM}`)
+    const currentDate = new Date();
+    const currentHour = String(currentDate.getHours()).padStart(2, '0');
+    const currentMinute = String(currentDate.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHour}:${currentMinute}`;
     const location = [parseFloat(latt), parseFloat(long)]
 
     try {
@@ -564,8 +598,14 @@ exports.getSearchedProducts = async function (req, res) {
             {
                 $match: {
                     "products.product_status": true,
-                    "products.product_available_fm": { $lte: currentNumber },
-                    "products.product_available_till": { $gte: currentNumber },
+                    "products.product_available_times": {
+                        $elemMatch: {
+                            $and: [
+                                { start_time: { $lte: currentTime } },
+                                { end_time: { $gte: currentTime } }
+                            ]
+                        }
+                    },
 
                 }
             },
@@ -651,7 +691,6 @@ exports.singleOrderStatus = async function (req, res) {
     }
 };
 
-
 exports.myPayments = async function (req, res) {
     try {
         const { store_id } = req.user
@@ -663,6 +702,70 @@ exports.myPayments = async function (req, res) {
     } catch (e) {
         return res.json({ status: 0, message: e.message })
     }
+};
+
+
+
+
+/////// Create new product
+
+exports.create_new_product = async function (req, res) {
+    const commisionFee = 1;
+    try {
+
+        const { product_data } = req.body
+        const { product_image } = req.files
+
+
+        var product = new Product(JSON.parse(product_data));
+        const lastnumber = await Increment('products')
+        product._id = 'ZX' + lastnumber
+
+        const __store = await Stores.findById(product.product_store_id)
+        const { store_pin_location, store_name } = __store
+
+        const __photoList = await uploadPic(product_image, product.product_store_id)
+
+        const timeSets = [];
+        if (product.product_closing_time < product.product_opening_time) {
+            const timeSet1 = { start_time: product.product_opening_time, end_time: "23:59" };
+            const timeSet2 = { start_time: "00:00", end_time: product.product_closing_time };
+            timeSets.push(timeSet1, timeSet2);
+        } else {
+            const timeSet = { start_time: product.product_opening_time, end_time: product.product_closing_time };
+            timeSets.push(timeSet);
+        }
+
+        const discountPercentage = product.product_discount_percentage ? product.product_discount_percentage : 0;
+        const storeRate = product.product_store_price;
+        var sellingRate = product.product_store_price;
+
+        if (discountPercentage && discountPercentage > 0) {
+            sellingRate = (sellingRate - (sellingRate * discountPercentage) / 100).toFixed(2);
+        }
+        const rateBeforeDiscount = (storeRate * commisionFee).toFixed(2);
+        sellingRate = (sellingRate * commisionFee).toFixed(2);
+        product.product_price = sellingRate;
+        product.product_price_before_discount = rateBeforeDiscount;
+        product.product_discount_percentage = discountPercentage;
+        product.product_status = false
+        product.product_is_customisable = false
+        product.product_store_pin_location = store_pin_location
+        product.product_keywords = product.product_title,
+            product.product_store_keywords = store_name,
+            product.product_images_list = __photoList,
+            product.product_images = __photoList,
+            product.product_dietary_info = false
+        product.product_available_times = timeSets
+
+        const item = await product.save();
+
+        return res.json({ status: 1, message: 'Success', data: item });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+
 };
 
 exports.addproduct = async function (req, res) {
@@ -720,23 +823,23 @@ exports.updateSingle = async function (req, res) {
             product_opening_time,
             product_closing_time,
             product_status
-           
+
         } = req.body
 
-    
+
         const timeSets = [];
         if (product_closing_time < product_opening_time) {
             const timeSet1 = { start_time: product_opening_time, end_time: "23:59" };
             const timeSet2 = { start_time: "00:00", end_time: product_closing_time };
             timeSets.push(timeSet1, timeSet2);
-          } else {
+        } else {
             const timeSet = { start_time: product_opening_time, end_time: product_closing_time };
             timeSets.push(timeSet);
-          }
+        }
 
-        const __store = await Stores.findById( product_store_id ? product_store_id: store_id)
+        const __store = await Stores.findById(product_store_id ? product_store_id : store_id)
         const { store_pin_location, store_name } = __store
-       
+
 
         const discountPercentage = product_discount_percentage ? product_discount_percentage : 0;
         const storeRate = product_store_price;
@@ -789,13 +892,13 @@ exports.updateSize = async function (req, res) {
         }
         const rateBeforeDiscount = (storeRate * commisionFee).toFixed(2);
         sellingRate = (sellingRate * commisionFee).toFixed(2);
-        
+
         const product_data = await Product.findById(_id)
         let { product_sizes } = product_data
 
         let _tokens = product_sizes ? product_sizes : []
         let _filter = _tokens.filter(x => x.name !== name)
-        const new_data = { name, gross_rate: rateBeforeDiscount, rate: sellingRate, discount, status}
+        const new_data = { name, gross_rate: rateBeforeDiscount, rate: sellingRate, discount, status }
         _filter.push(new_data)
 
         const update = {
@@ -824,7 +927,7 @@ exports.deleteSize = async function (req, res) {
 
         let _tokens = product_sizes ? product_sizes : []
         let _filter = _tokens.filter(x => x.name !== name)
-        
+
         const update = {
             product_sizes: _filter,
             product_is_customisable: _filter.length > 0
@@ -876,6 +979,7 @@ exports.UpdateImages = async function (req, res) {
     }
 
 };
+
 
 exports.deleteImages = async function (req, res) {
     try {

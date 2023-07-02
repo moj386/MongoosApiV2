@@ -19,12 +19,9 @@ const size_details = {
     gross_rate: Number,
     rate: Number,
     discount: Number,
-    status: Boolean
+    status: Boolean,
+    selected: Boolean
 }
-
-
-
-
 
 var ProductSchema = mongoose.Schema({
     _id: String,
@@ -41,8 +38,8 @@ var ProductSchema = mongoose.Schema({
     product_image_name: { type: String, required: false },
     product_status: { type: Boolean, required: true },
 
-    product_available_fm: { type: Number, required: true },
-    product_available_till: { type: Number, required: true },
+    product_available_fm: { type: Number, required: false },
+    product_available_till: { type: Number, required: false },
     product_images:[String],
     product_images_list: [String],
     
