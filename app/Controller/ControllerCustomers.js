@@ -459,7 +459,7 @@ exports.addOrder = async function (req, res) {
             {
                 products,
                 gross_amount,
-                discount_amount,
+                other_amount,
                 delivery_fee,
                 vat_amount,
                 service_charges,
@@ -472,7 +472,7 @@ exports.addOrder = async function (req, res) {
 
         order._id = lastnumber;
         order.order_gross_amount = gross_amount;
-        order.order_discount_amount = discount_amount;
+        order.order_discount_amount = other_amount;
         order.order_delivery_charges = delivery_fee;
         order.order_service_charges = service_charges;
         order.order_net_amount = net_amount;
@@ -639,7 +639,8 @@ exports.makePayment = async function (req, res) {
             store_delivery_fee,
             vat_total,
             grand_total,
-            service_charges
+            service_charges,
+            otherAmount
         } = req.body
 
         let ephemeralKey = {}
@@ -664,6 +665,7 @@ exports.makePayment = async function (req, res) {
             delivery_fee: store_delivery_fee,
             vat_amount: vat_total,
             service_charges: service_charges,
+            other_amount: otherAmount,
             net_amount: grand_total
         })
 

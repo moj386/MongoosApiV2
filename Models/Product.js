@@ -11,11 +11,11 @@ const __variation = {
     option_is_mandatory: Boolean,
     option__mandatory_count: Number,
     option_status: Boolean,
-    option_details:option_details 
+    option_details: option_details
 }
 
 const size_details = {
-    name: { type: String, required: true, unique: true},
+    name: { type: String, required: true, unique: true },
     gross_rate: Number,
     rate: Number,
     discount: Number,
@@ -23,9 +23,26 @@ const size_details = {
     selected: Boolean
 }
 
+const choice_list_details = {
+    cld_name: { type: String, required: true, unique: true },
+    cld_price: Number,
+    cld_ranking: Number,
+    cld_selected: Boolean
+}
+
+const choice_sections_list = {
+    choice_name: { type: String, required: true, unique: true },
+    choice_mnq: { type: Number, required: true },
+    choice_mxq: { type: Number, required: true },
+    choice_sub_name: { type: String, required: true },
+    choice_ranking: Number,
+    choice_list:[choice_list_details]
+}
+
+
 var ProductSchema = mongoose.Schema({
     _id: String,
-    product_store_id:{ type: String, required: true },
+    product_store_id: { type: String, required: true },
     product_title: { type: String, required: true },
     product_store_price: { type: Number, required: false },
     product_discount_percentage: { type: Number, required: true },
@@ -40,26 +57,27 @@ var ProductSchema = mongoose.Schema({
 
     product_available_fm: { type: Number, required: false },
     product_available_till: { type: Number, required: false },
-    product_images:[String],
+    product_images: [String],
     product_images_list: [String],
-    
-    product_category:[String],
-    product_variation:[__variation],
-    product_active_status:Boolean,
+
+    product_category: [String],
+    product_variation: [__variation],
+    product_active_status: Boolean,
     product_keywords: String,
     product_store_keywords: String,
     product_cart_qty: Number,
     product_cart_amount: Number,
     product_created_ts: { type: Date, default: Date.now },
-    product_store_pin_location:  { type: { type: String }, coordinates: [] },
+    product_store_pin_location: { type: { type: String }, coordinates: [] },
     product_sizes: [size_details],
     product_is_customisable: { type: Boolean, required: true },
     product_opening_time: String,
     product_closing_time: String,
-    product_available_times:[{ start_time: String,  end_time: String }]
-    
+    product_available_times: [{ start_time: String, end_time: String }],
+    choice_sections: [ choice_sections_list ]
 
-}); 
+
+});
 module.exports = ProductSchema
 
 

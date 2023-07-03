@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema({
       delivery_fee: Number,
       vat_amount: Number,
       service_charges: Number,
+      discount_amount: Number,
+      other_amount: Number,
       net_amount: Number
     },
     customer_wishlist_restaurant:[String],
