@@ -46,6 +46,7 @@ const orderSchema = new mongoose.Schema({
   order_vat_amount: Number,
   order_discount_amount: Number,
   order_delivery_charges: Number,
+  order_service_charges: Number,
   order_net_amount: Number,
   order_customer_email:  String,
   order_customer_mobile: String ,

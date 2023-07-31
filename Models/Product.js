@@ -14,32 +14,33 @@ const __variation = {
     option_details: option_details
 }
 
-const size_details = {
+const size_details = mongoose.Schema({
+
     name: { type: String, required: true, unique: true },
     gross_rate: Number,
     rate: Number,
     discount: Number,
     status: Boolean,
     selected: Boolean
-}
+})
 
-const choice_list_details = {
+const choice_list_details = mongoose.Schema({
     cld_name: { type: String, required: true, unique: true },
     cld_price: Number,
     cld_ranking: Number,
-    cld_selected: Boolean
-}
+    cld_selected: Boolean,
+    selected: Boolean
+})
 
-const choice_sections_list = {
+const choice_sections_list = mongoose.Schema({
     choice_name: { type: String, required: true, unique: true },
     choice_mnq: { type: Number, required: true },
     choice_mxq: { type: Number, required: true },
-    choice_sub_name: { type: String, required: true },
     choice_ranking: Number,
+    choice_status: { type: Boolean, default: true },
+    choice_updateRate: Boolean,
     choice_list:[choice_list_details]
-}
-
-
+})
 var ProductSchema = mongoose.Schema({
     _id: String,
     product_store_id: { type: String, required: true },

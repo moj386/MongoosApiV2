@@ -53,6 +53,9 @@ router.route('/order/home')
 router.route('/products').post(auth, customerController.products)
 router.route('/store/id').post(auth, customerController.see_store)
 router.route('/payment').post(auth, customerController.makePayment)
+router.route('/payment/cash').post(auth, customerController.makeCashPayment)
+
+
 
 
 router.route('/wishlist/products').post(auth, customerController.add_wishlist_products)

@@ -53,11 +53,11 @@ exports.viewPendingOrders = async function (req, res) {
 
 exports.changeOrderStatus = async function (req, res) {
     try {
-        const { store_id, order_status } = req.body;
-        const filter = { _id: store_id };
+        const { order_id, order_status } = req.body;
+        const filter = { _id: order_id };
         const update = { order_status };
-        await Stores.findOneAndUpdate(filter, update);
-
+        await Orders.findOneAndUpdate(filter, update);
+        return res.json({ status: 1, message: 'Success' });
     } catch (err) {
         res.json({ status: 0, message: err.message });
     }

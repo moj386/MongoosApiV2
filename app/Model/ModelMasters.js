@@ -98,6 +98,15 @@ const hero_banners = new mongoose.Schema({
     end_time: Date
 }); 
 
+const choice_list = new mongoose.Schema({
+    _id: String,
+    description: String,
+    image: String,
+    order: Number,
+    isActive: Boolean,
+    updateRate: Boolean
+}); 
+
 
 
 exports.Dates = mongoose.model("date_master", dateSchema);
@@ -113,5 +122,5 @@ exports.Colors = mongoose.model("color_master", colors);
 exports.Sizes = mongoose.model("size_master", sizes);
 exports.HeroBanners = mongoose.model("hero_banners", hero_banners);
 
-
+exports.choice_list = mongoose.model("choice_list", choice_list);
 exports.Increment = mongoose.model("increment_master", increment);

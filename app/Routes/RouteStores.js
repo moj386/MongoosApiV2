@@ -61,4 +61,16 @@ router.route('/search/products').post(storeController.getSearchedProducts)
 router.route('/password/rest').post(storeController.reset_password)
 router.route('/updateKeyword').get(storeController.updateKeywords)
 
+
+router.route('/choice/list')
+.put(storeController.update_choice_1)
+.delete(storeController.update_choice_1_d)
+.post(storeController.update_choice_1_s)
+
+router.route('/choice/items')
+.put(storeController.update_choice_2)
+.delete(storeController.update_choice_2_d)
+
+
+
 module.exports = router;

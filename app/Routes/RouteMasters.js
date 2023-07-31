@@ -45,5 +45,8 @@ router.route('/sizes')
 router.route('/banner/hero')
 .get(masterController.get_Hero_Banner)
 
+router.route('/choice/list')
+.get(masterController.GetChoiceList)
+
 
 module.exports = router;

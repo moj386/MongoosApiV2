@@ -944,6 +944,146 @@ exports.deleteSize = async function (req, res) {
     }
 };
 
+exports.update_choice_1 = async function (req, res) {
+    try {
+        const { _id, selection, min, max, rank, updateRate } = req.body
+        const product_data = await Product.findById(_id)
+        const { choice_sections } = product_data
+        let _choices = choice_sections ? choice_sections : []
+        _choices.push({
+            choice_name: selection,
+            choice_mnq: min,
+            choice_mxq: max,
+            choice_ranking: rank,
+            choice_updateRate: updateRate
+        })
+        const update = {
+            choice_sections: _choices,
+            product_is_customisable: _choices.length > 0
+        }
+        const filter = { _id };
+        await Product.findOneAndUpdate(filter, update);
+
+        const p_data = await Product.findById(_id)
+
+        return res.json({ status: 1, message: 'Success', data: p_data });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+exports.update_choice_1_d = async function (req, res) {
+    try {
+        const { _id, selection } = req.body
+        const product_data = await Product.findById(_id).lean()
+        const { choice_sections } = product_data
+        const _choices = choice_sections.filter(x=> x.choice_name !== selection)
+        const is_customisable = choice_sections.filter(x=> x.choice_status === true)
+       
+        const update = {
+            choice_sections: _choices,
+            product_is_customisable: is_customisable.length > 0
+        }
+        const filter = { _id };
+        await Product.findOneAndUpdate(filter, update);
+        const p_data = await Product.findById(_id)
+        return res.json({ status: 1, message: 'Success', data: p_data });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+exports.update_choice_1_s = async function (req, res) {
+    try {
+        const { _id, selection, status } = req.body
+        const product_data = await Product.findById(_id).lean()
+        const { choice_sections } = product_data
+        const _choices = choice_sections.find(x=> x.choice_name === selection)
+        
+        const choice_sections_y = Object.assign({}, _choices, {choice_status: status})
+        const is_customisable = choice_sections_y.filter(x=> x.choice_status === true)
+
+        const update = {
+            choice_sections: choice_sections_y,
+            product_is_customisable: is_customisable.length > 0
+        }
+        const filter = { _id };
+        await Product.findOneAndUpdate(filter, update);
+        const p_data = await Product.findById(_id)
+        return res.json({ status: 1, message: 'Success', data: p_data });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+
+
+exports.update_choice_2 = async function (req, res) {
+    try {
+        const { _id, choice_name, name, rate } = req.body
+        const product_data = await Product.findById(_id).lean()
+        let { choice_sections } = product_data;
+        const _filter = choice_sections.find(x=> x.choice_name === choice_name)
+        const { choice_list } = _filter
+        let _choices = choice_list ? choice_list : []
+        _choices.push({ cld_name: name, cld_price: rate })
+        
+        const newState = choice_sections.map(product => product.choice_name === choice_name 
+            ? { ...product, choice_list: _choices }
+            : product,
+        )
+        const update = {
+            choice_sections: newState,
+            product_is_customisable: _choices.length > 0
+        }
+        const filter = { _id };
+        await Product.findOneAndUpdate(filter, update);
+
+        const p_data = await Product.findById(_id)
+
+        return res.json({ status: 1, message: 'Success', data: p_data });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+exports.update_choice_2_d = async function (req, res) {
+    try {
+        const { p_code, c_code, ci_code } = req.body
+
+
+        const product_data = await Product.findById(p_code).lean()
+        
+        let { choice_sections } = product_data;
+        const _filter = choice_sections.find(x=> x.choice_name === c_code)
+        
+        const { choice_list } = _filter
+        const _choices = choice_list.filter(x=> x.cld_name !== ci_code)
+
+
+        const newState = choice_sections.map(product => product.choice_name === c_code 
+            ? { ...product, choice_list: [..._choices] }
+            : product,
+        )
+        const update = {
+            choice_sections: newState
+        }
+    
+        console.log('choice_sections', JSON.stringify(update));
+
+        
+        const filter = { _id:  p_code};
+        await Product.findOneAndUpdate(filter, update);
+
+        const p_data = await Product.findById(p_code)
+
+        return res.json({ status: 1, message: 'Success', data: p_data });
+
+    } catch (error) {
+        res.json({ status: 0, message: error.message });
+    }
+};
+
 exports.single = async function (req, res) {
     try {
         const { store_id } = req.user

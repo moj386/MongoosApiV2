@@ -12,7 +12,7 @@ const Featured = Masters.Featured;
 const Colors = Masters.Colors;
 const Sizes = Masters.Sizes;
 const HeroBanners = Masters.HeroBanners
-
+const Choices = Masters.choice_list;
 
 exports.upload_Hero_Banner = async function (req, res) {
     try {
@@ -237,3 +237,25 @@ exports.GetSizes = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
+exports.GetChoiceList = async function (req, res) {
+    try{
+       const data =  await Choices.find()
+        const po = changeKeyInArrayOfObjects(data);
+
+       return res.json({ status: 1, message: 'Success', data: po });
+    }catch(err){
+        res.json({ status: 0, message: err.message });
+    }
+};
+
+function changeKeyInArrayOfObjects(array) {
+    
+    let marray = []
+
+    array.map((item)=>{
+        marray.push({ label: item.description, value: item.description, updateRate: item.updateRate })
+    })
+
+    return marray
+  }

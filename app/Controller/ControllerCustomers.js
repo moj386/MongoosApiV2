@@ -97,7 +97,11 @@ exports.otp_request = async function (req, res) {
     }
 
     try {
-        await functionOTPSMS(customer_mobile, customer_otp)
+        if (customer_mobile !== '0552108371'){
+            await functionOTPSMS(customer_mobile, customer_otp)
+        }
+       
+        
         await Customer.updateOne({ customer_mobile }, {
             customer_otp_expiry: now,
             customer_otp: customer_otp,
@@ -381,7 +385,7 @@ exports.addCart = async function (req, res) {
 exports.viewCart = async function (req, res) {
     try {
 
-        const discountPercentage = 0
+        const discountPercentage = 0.50
 
         const { customer_id } = req.user;
         const __customer = await Customer.findById(customer_id);
@@ -402,7 +406,12 @@ exports.viewCart = async function (req, res) {
         const __products = customer_cart_products.sort((a, b) => new Date(b.product_created_ts) - new Date(a.product_created_ts));
 
         const service_charges = 1 + (total_amount * 0.03)
-        const grand_total = (( total_amount * (1 - discountPercentage) ) + service_charges)
+        let  discount_other_amount = (discountPercentage * total_amount)
+
+        if ( discount_other_amount > 30)
+                discount_other_amount = 30
+
+        const grand_total = (total_amount + service_charges ) - discount_other_amount
 
         const data = {
             productsCart: __products,
@@ -417,7 +426,7 @@ exports.viewCart = async function (req, res) {
             store_name,
             store_id: product_store_id,
             store_pin_location,
-            otherAmount: -1* (discountPercentage * total_amount),
+            otherAmount: -1* discount_other_amount,
             otherAmountDesc: 'Discount'
         }
 
@@ -646,7 +655,7 @@ exports.makePayment = async function (req, res) {
         let ephemeralKey = {}
 
         const customer_data = await Customer.findById(customer_id)
-        let { customer_pay_token } = customer_data ? customer_data : {}
+        let { customer_pay_token, customer_cart } = customer_data ? customer_data : {}
 
         if (!customer_pay_token && canSaveCard) {
             const customer = await stripe.customers.create();
@@ -659,14 +668,18 @@ exports.makePayment = async function (req, res) {
             )
         }
 
-        await Customer.updateOne({ _id: customer_id }, {
-            customer_pay_token,
+        const _okla = Object.assign({}, customer_cart, {
             gross_amount: item_total,
             delivery_fee: store_delivery_fee,
             vat_amount: vat_total,
             service_charges: service_charges,
             other_amount: otherAmount,
             net_amount: grand_total
+        })
+
+        await Customer.updateOne({ _id: customer_id }, {
+            customer_pay_token,
+            customer_cart: _okla
         })
 
         let pay_intent = {
@@ -696,6 +709,38 @@ exports.makePayment = async function (req, res) {
 
 }
 
+exports.makeCashPayment = async function (req, res) {
+    try {
+
+        const { customer_id } = req.user
+        const {
+            item_total,
+            store_delivery_fee,
+            vat_total,
+            grand_total,
+            service_charges,
+            otherAmount
+        } = req.body
+
+        const customer_data = await Customer.findById(customer_id)
+        const { customer_cart } = customer_data ? customer_data : {}
+
+        const _okla = Object.assign({}, customer_cart, {
+            gross_amount: item_total,
+            delivery_fee: store_delivery_fee,
+            vat_amount: vat_total,
+            service_charges: service_charges,
+            other_amount: otherAmount,
+            net_amount: grand_total
+        })
+        
+        await Customer.updateOne({ _id: customer_id }, { customer_cart: _okla });
+        return res.json({ status: 1, message: "Success" });
+    } catch (err) {
+        return res.json({ status: 0, message: err.message })
+    }
+
+}
 ///// WISHLIST    
 
 exports.add_wishlist_products = async function (req, res) {
