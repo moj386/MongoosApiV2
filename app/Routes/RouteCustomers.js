@@ -30,6 +30,7 @@ router.route('/cart')
 .get(auth,customerController.viewCart)
 .post(auth, customerController.addCart)
 .delete(auth, customerController.deleteCart)
+.put(auth, customerController.setCart)
 
 router.route('/order').post(auth, customerController.addOrder)
 router.route('/order/instruction').post(customerController.updateOrderInstruction)
@@ -50,8 +51,8 @@ router.route('/order/home')
 
 
 
-router.route('/products').post(auth, customerController.products)
-router.route('/store/id').post(auth, customerController.see_store)
+router.route('/products').post(customerController.products)
+router.route('/store/id').post(customerController.see_store)
 router.route('/payment').post(auth, customerController.makePayment)
 router.route('/payment/cash').post(auth, customerController.makeCashPayment)
 

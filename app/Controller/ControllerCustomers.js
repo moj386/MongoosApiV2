@@ -385,51 +385,8 @@ exports.addCart = async function (req, res) {
 exports.viewCart = async function (req, res) {
     try {
 
-        const discountPercentage = 0.50
-
         const { customer_id } = req.user;
-        const __customer = await Customer.findById(customer_id);
-        const { customer_cart } = __customer;
-        const customer_cart_products = customer_cart.products
-
-        const total_amount = customer_cart_products.reduce((acc, item) => {
-            const { product_cart_amount } = item
-            return acc + (product_cart_amount)
-
-        }, 0)
-        const __single = customer_cart_products ? customer_cart_products[0] : {}
-        const { product_store_id } = __single ? __single : {}
-
-        const store = await Stores.findById(product_store_id);
-        const { store_delivery_fee, store_latitude, store_longitude, store_name, store_pin_location } = store ? store : {}
-
-        const __products = customer_cart_products.sort((a, b) => new Date(b.product_created_ts) - new Date(a.product_created_ts));
-
-        const service_charges = 1 + (total_amount * 0.03)
-        let  discount_other_amount = (discountPercentage * total_amount)
-
-        if ( discount_other_amount > 30)
-                discount_other_amount = 30
-
-        const grand_total = (total_amount + service_charges ) - discount_other_amount
-
-        const data = {
-            productsCart: __products,
-            cartAmount: total_amount,
-            item_total: total_amount,
-            grand_total,
-            service_charges,
-            vat_total: 0,
-            store_delivery_fee,
-            store_latitude,
-            store_longitude,
-            store_name,
-            store_id: product_store_id,
-            store_pin_location,
-            otherAmount: -1* discount_other_amount,
-            otherAmountDesc: 'Discount'
-        }
-
+        const data = await loadCartData(customer_id)
         return res.json({ status: 1, message: 'Success', data: data });
 
     } catch (err) {
@@ -454,6 +411,75 @@ exports.deleteCart = async function (req, res) {
         res.json({ status: 0, message: err.message });
     }
 };
+
+exports.setCart = async function (req, res) {
+    try {
+        const { customer_id } = req.user;
+        const __customer = await Customer.findById(customer_id);
+        const { cartData } = req.body
+
+        console.log(cartData);
+
+        await Customer.updateOne({ _id: __customer._id }, { "$set": { "customer_cart": { products: cartData } } });
+        const data = await loadCartData(customer_id)
+        
+        return res.json({ status: 1, message: 'Success', data});
+
+    } catch (err) {
+        res.json({ status: 0, message: err.message });
+    }
+};
+
+
+const loadCartData = async (id) =>{
+    
+
+        const discountPercentage = 0.50
+
+        const __customer = await Customer.findById(id);
+        const { customer_cart } = __customer;
+        const customer_cart_products = customer_cart.products
+
+        const total_amount = customer_cart_products.reduce((acc, item) => {
+            const { product_cart_amount } = item
+            return acc + (product_cart_amount)
+
+        }, 0)
+        const __single = customer_cart_products ? customer_cart_products[0] : {}
+        const { product_store_id } = __single ? __single : {}
+
+        const store = await Stores.findById(product_store_id);
+        const { store_delivery_fee, store_latitude, store_longitude, store_name, store_pin_location } = store ? store : {}
+
+        const __products = customer_cart_products.sort((a, b) => new Date(b.product_created_ts) - new Date(a.product_created_ts));
+
+        const service_charges = 1 + (total_amount * 0.03)
+        let  discount_other_amount = (discountPercentage * total_amount)
+
+        if ( discount_other_amount > 30)
+                discount_other_amount = 30
+
+        const grand_total = (total_amount + service_charges ) - discount_other_amount
+
+        return {
+            productsCart: __products,
+            cartAmount: total_amount,
+            item_total: total_amount,
+            grand_total,
+            service_charges,
+            vat_total: 0,
+            store_delivery_fee,
+            store_latitude,
+            store_longitude,
+            store_name,
+            store_id: product_store_id,
+            store_pin_location,
+            otherAmount: -1* discount_other_amount,
+            otherAmountDesc: 'Discount'
+        }
+}
+
+
 
 
 //// ORDERS
